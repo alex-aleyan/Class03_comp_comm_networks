@@ -9,11 +9,8 @@
 #include <stdio.h>
 #include <argp.h>
 
-const char *argp_program_version =
-"argex 1.0";
-
-const char *argp_program_bug_address =
-"<bug-gnu-utils@gnu.org>";
+const char *argp_program_version = "argex 1.0";
+const char *argp_program_bug_address = "<bug-gnu-utils@gnu.org>";
 
 /* This structure is used by main to communicate with parse_opt. */
 struct arguments
@@ -21,7 +18,8 @@ struct arguments
   char *args[2];            /* ARG1 and ARG2 */
   int verbose;              /* The -v flag */
   char *outfile;            /* Argument for -o */
-  char *source_ip, *dest_ip, *source_port, *dest_port;  /* Arguments for -a and -b */
+  char *source_ip, *source_port;
+  char *dest_ip,   *dest_port;  /* Arguments for -a and -b */
 };
 
 /*
@@ -110,7 +108,6 @@ int main (int argc, char **argv)
 {
   struct arguments arguments;
   FILE *outstream;
-
   char waters[] = "VERBOSEVERBOSEVERBOSEVERBOSE \n";
 
   /* Set argument defaults */
@@ -125,10 +122,8 @@ int main (int argc, char **argv)
   argp_parse (&argp, argc, argv, 0, 0, &arguments);
 
   /* Where do we send output? */
-  if (arguments.outfile)
-    outstream = fopen (arguments.outfile, "w");
-  else
-    outstream = stdout;
+  if (arguments.outfile) outstream = fopen (arguments.outfile, "w");
+  else                   outstream = stdout;
 
   /* Print argument values */
   fprintf (outstream, "\n");
@@ -136,11 +131,11 @@ int main (int argc, char **argv)
   fprintf (outstream, "source-port: %s\n\n", arguments.source_port);
   fprintf (outstream, "dest-ip:     %s\n",   arguments.dest_ip);
   fprintf (outstream, "dest-port:   %s\n\n", arguments.dest_port);
-  fprintf (outstream, "ARG1 = %s\nARG2 = %s\n\n", arguments.args[0], arguments.args[1]);
+  fprintf (outstream, "ARG1 = %s\n",         arguments.args[0]);
+  fprintf (outstream, "ARG2 = %s\n\n",       arguments.args[1]);
 
   /* If in verbose mode, print song stanza */
-  if (arguments.verbose)
-    fprintf (outstream, waters);
+  if (arguments.verbose) fprintf (outstream, waters);
 
   return 0;
 }
