@@ -1,163 +1,138 @@
-/* This program uses the same features as example 3, but has more
-   options, and somewhat more structure in the -help output.  It
-   also shows how you can ‘steal’ the remainder of the input
-   arguments past a certain point, for programs that accept a
-   list of items.  It also shows the special argp KEY value
-   ARGP_KEY_NO_ARGS, which is only given if no non-option
-   arguments were supplied to the program.
-
-   For structuring the help output, two features are used,
-   *headers* which are entries in the options vector with the
-   first four fields being zero, and a two part documentation
-   string (in the variable DOC), which allows documentation both
-   before and after the options; the two parts of DOC are
-   separated by a vertical-tab character (’\v’, or ’\013’).  By
-   convention, the documentation before the options is just a
-   short string saying what the program does, and that afterwards
-   is longer, describing the behavior in more detail.  All
-   documentation strings are automatically filled for output,
-   although newlines may be included to force a line break at a
-   particular point.  All documentation strings are also passed to
-   the ‘gettext’ function, for possible translation into the
-   current locale. */
-
-#include <stdlib.h>
-#include <error.h>
+#include <stdio.h>
 #include <argp.h>
 
 const char *argp_program_version =
-  "argp-ex4 1.0";
+"argex 1.0";
+
 const char *argp_program_bug_address =
-  "<bug-gnu-utils@prep.ai.mit.edu>";
+"<bug-gnu-utils@gnu.org>";
 
-/* Program documentation. */
-static char doc[] =
-  "Argp example #4 -- a program with somewhat more complicated\
-options\
-\vThis part of the documentation comes *after* the options;\
- note that the text is automatically filled, but it's possible\
- to force a line-break, e.g.\n<-- here.";
-
-/* A description of the arguments we accept. */
-static char args_doc[] = "ARG1 [STRING...]";
-
-/* Keys for options without short-options. */
-#define OPT_ABORT  1            /* –abort */
-
-/* The options we understand. */
-static struct argp_option options[] = {
-  {"verbose",  'v', 0,       0, "Produce verbose output" },
-  {"quiet",    'q', 0,       0, "Don't produce any output" },
-  {"silent",   's', 0,       OPTION_ALIAS },
-  {"output",   'o', "FILE",  0, "Output to FILE instead of standard output" },
-  {0,0,0,0, "The following options should be grouped together:" },
-  {"repeat",   'r', "COUNT", OPTION_ARG_OPTIONAL, "Repeat the output COUNT (default 10) times"},
-  {"abort",    OPT_ABORT, 0, 0, "Abort before showing any output"},
-
-  { 0 }
-};
-
-/* Used by main to communicate with parse_opt. */
+/* This structure is used by main to communicate with parse_opt. */
 struct arguments
 {
-  char *arg1;                   /* arg1 */
-  char **strings;               /* [string…] */
-  int silent, verbose, abort;   /* ‘-s’, ‘-v’, ‘--abort’ */
-  char *output_file;            /* file arg to ‘--output’ */
-  int repeat_count;             /* count arg to ‘--repeat’ */
+  char *args[2];            /* ARG1 and ARG2 */
+  int verbose;              /* The -v flag */
+  char *outfile;            /* Argument for -o */
+  char *string1, *string2, *string3, *string4;  /* Arguments for -a and -b */
 };
 
-/* Parse a single option. */
-static error_t
-parse_opt (int key, char *arg, struct argp_state *state)
+/*
+   OPTIONS.  Field 1 in ARGP.
+   Order of fields: {NAME, KEY, ARG, FLAGS, DOC}.
+*/
+static struct argp_option options[] =
 {
-  /* Get the input argument from argp_parse, which we
-     know is a pointer to our arguments structure. */
+  {"verbose",        'v',         0, 0, "Produce verbose output"},
+  {"source-ip",      's', "STRING1", 0, "Do something with STRING1 related to the letter A"},
+  {"source-port",    'p', "STRING1", 0, "Do something with STRING1 related to the letter A"},
+  {"dest-ip",        'd', "STRING1", 0, "Do something with STRING2 related to the letter B"},
+  {"dest-port",      'b', "STRING1", 0, "Do something with STRING2 related to the letter B"},
+  {"output",         'o', "OUTFILE", 0, "Output to OUTFILE instead of to standard output"},
+  {0}
+};
+
+
+/*
+   PARSER. Field 2 in ARGP.
+   Order of parameters: KEY, ARG, STATE.
+*/
+static error_t parse_opt (int key, char *arg, struct argp_state *state)
+{
   struct arguments *arguments = state->input;
 
   switch (key)
     {
-    case 'q': case 's':
-      arguments->silent = 1;
-      break;
     case 'v':
       arguments->verbose = 1;
       break;
+    case 's':
+      arguments->string1 = arg;
+      break;
+    case 'd':
+      arguments->string2 = arg;
+      break;
+    case 'p':
+      arguments->string3 = arg;
+      break;
+    case 'b':
+      arguments->string4 = arg;
+      break;
     case 'o':
-      arguments->output_file = arg;
+      arguments->outfile = arg;
       break;
-    case 'r':
-      arguments->repeat_count = arg ? atoi (arg) : 10;
-      break;
-    case OPT_ABORT:
-      arguments->abort = 1;
-      break;
-
-    case ARGP_KEY_NO_ARGS:
-      argp_usage (state);
-
     case ARGP_KEY_ARG:
-      /* Here we know that state->arg_num == 0, since we
-         force argument parsing to end before any more arguments can
-         get here. */
-      arguments->arg1 = arg;
-
-      /* Now we consume all the rest of the arguments.
-         state->next is the index in state->argv of the
-         next argument to be parsed, which is the first string
-         we’re interested in, so we can just use
-         &state->argv[state->next] as the value for
-         arguments->strings.
-
-         In addition, by setting state->next to the end
-         of the arguments, we can force argp to stop parsing here and
-         return. */
-      arguments->strings = &state->argv[state->next];
-      state->next = state->argc;
-
+      if (state->arg_num >= 2) argp_usage(state);
+      arguments->args[state->arg_num] = arg;
       break;
-
+    case ARGP_KEY_END:
+      if (state->arg_num < 2) argp_usage (state);
+      break;
     default:
       return ARGP_ERR_UNKNOWN;
     }
   return 0;
 }
 
-/* Our argp parser. */
-static struct argp argp = { options, parse_opt, args_doc, doc };
+/*
+   ARGS_DOC. Field 3 in ARGP.
+   A description of the non-option command-line arguments
+     that we accept.
+*/
+static char args_doc[] = "ARG1 ARG2";
 
-int
-main (int argc, char **argv)
+/*
+  DOC.  Field 4 in ARGP.
+  Program documentation.
+*/
+static char doc[] = "argex -- A program to demonstrate how to code command-line options \
+and arguments.\vFrom the GNU C Tutorial.";
+
+/*
+   The ARGP structure itself.
+*/
+static struct argp argp = {options, parse_opt, args_doc, doc};
+
+/*
+   The main function.
+   Notice how now the only function call needed to process
+   all command-line options and arguments nicely
+   is argp_parse.
+*/
+int main (int argc, char **argv)
 {
-  int i, j;
   struct arguments arguments;
+  FILE *outstream;
 
-  /* Default values. */
-  arguments.silent = 0;
+  char waters[] = "VERBOSEVERBOSEVERBOSEVERBOSE \n";
+
+  /* Set argument defaults */
+  arguments.outfile = NULL;
+  arguments.string1 = "";
+  arguments.string2 = "";
   arguments.verbose = 0;
-  arguments.output_file = "-";
-  arguments.repeat_count = 1;
-  arguments.abort = 0;
 
-  /* Parse our arguments; every option seen by parse_opt will be
-     reflected in arguments. */
+  /* Where the magic happens */
   argp_parse (&argp, argc, argv, 0, 0, &arguments);
 
-  if (arguments.abort)
-    error (10, 0, "ABORTED");
+  /* Where do we send output? */
+  if (arguments.outfile)
+    outstream = fopen (arguments.outfile, "w");
+  else
+    outstream = stdout;
 
-  for (i = 0; i < arguments.repeat_count; i++)
-    {
-      printf ("ARG1 = %s\n", arguments.arg1);
-      printf ("STRINGS = ");
-      for (j = 0; arguments.strings[j]; j++)
-        printf (j == 0 ? "%s" : ", %s", arguments.strings[j]);
-      printf ("\n");
-      printf ("OUTPUT_FILE = %s\nVERBOSE = %s\nSILENT = %s\n",
-              arguments.output_file,
-              arguments.verbose ? "yes" : "no",
-              arguments.silent ? "yes" : "no");
-    }
+  /* Print argument values */
+  fprintf (outstream, "\n");
+  fprintf (outstream, "source-ip: %s\n", arguments.string1);
+  fprintf (outstream, "source-port: %s\n", arguments.string3);
+  fprintf (outstream, "dest-ip:   %s\n\n", arguments.string2);
+  fprintf (outstream, "dest-port:   %s\n\n", arguments.string4);
+  fprintf (outstream, "ARG1 = %s\nARG2 = %s\n\n",
+	   arguments.args[0],
+	   arguments.args[1]);
 
-  exit (0);
+  /* If in verbose mode, print song stanza */
+  if (arguments.verbose)
+    fprintf (outstream, waters);
+
+  return 0;
 }
