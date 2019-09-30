@@ -1,3 +1,11 @@
+/* 
+	*
+	* Citing Sources: 
+	*
+	* https://www.linuxtopia.org/online_books/programming_books/gnu_c_programming_tutorial/argp-example.html 
+	* 
+	*/
+
 #include <stdio.h>
 #include <argp.h>
 
@@ -13,7 +21,7 @@ struct arguments
   char *args[2];            /* ARG1 and ARG2 */
   int verbose;              /* The -v flag */
   char *outfile;            /* Argument for -o */
-  char *string1, *string2, *string3, *string4;  /* Arguments for -a and -b */
+  char *source_ip, *dest_ip, *source_port, *dest_port;  /* Arguments for -a and -b */
 };
 
 /*
@@ -22,12 +30,12 @@ struct arguments
 */
 static struct argp_option options[] =
 {
-  {"verbose",        'v',         0, 0, "Produce verbose output"},
-  {"source-ip",      's', "STRING1", 0, "Do something with STRING1 related to the letter A"},
-  {"source-port",    'p', "STRING1", 0, "Do something with STRING1 related to the letter A"},
-  {"dest-ip",        'd', "STRING1", 0, "Do something with STRING2 related to the letter B"},
-  {"dest-port",      'b', "STRING1", 0, "Do something with STRING2 related to the letter B"},
-  {"output",         'o', "OUTFILE", 0, "Output to OUTFILE instead of to standard output"},
+  {"verbose",        'v',											    0, 0, "Produce verbose output"},
+  {"source-ip",      's', "<XX.XX.XX.XX>", 0, "Provide source IP address of you NIC"},
+  {"source-port",    'p', "<XXXX>"						 , 0, "Provide source port number > 1025"},
+  {"dest-ip",        'd', "<XX.XX.XX.XX>", 0, "Provide Destination IP/hostname"},
+  {"dest-port",      'b', "<XXXX>"						 , 0, "Provide destination port number"},
+  {"output",         'o', "OUTFILE"					 , 0, "Output to OUTFILE instead of to standard output"},
   {0}
 };
 
@@ -46,16 +54,16 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
       arguments->verbose = 1;
       break;
     case 's':
-      arguments->string1 = arg;
+      arguments->source_ip = arg;
       break;
     case 'd':
-      arguments->string2 = arg;
+      arguments->dest_ip = arg;
       break;
     case 'p':
-      arguments->string3 = arg;
+      arguments->source_port = arg;
       break;
     case 'b':
-      arguments->string4 = arg;
+      arguments->dest_port = arg;
       break;
     case 'o':
       arguments->outfile = arg;
@@ -107,8 +115,10 @@ int main (int argc, char **argv)
 
   /* Set argument defaults */
   arguments.outfile = NULL;
-  arguments.string1 = "";
-  arguments.string2 = "";
+  arguments.source_ip = "";
+  arguments.dest_ip = "";
+  arguments.source_port = "";
+  arguments.dest_port = "";
   arguments.verbose = 0;
 
   /* Where the magic happens */
@@ -122,13 +132,11 @@ int main (int argc, char **argv)
 
   /* Print argument values */
   fprintf (outstream, "\n");
-  fprintf (outstream, "source-ip: %s\n", arguments.string1);
-  fprintf (outstream, "source-port: %s\n", arguments.string3);
-  fprintf (outstream, "dest-ip:   %s\n\n", arguments.string2);
-  fprintf (outstream, "dest-port:   %s\n\n", arguments.string4);
-  fprintf (outstream, "ARG1 = %s\nARG2 = %s\n\n",
-	   arguments.args[0],
-	   arguments.args[1]);
+  fprintf (outstream, "source-ip:   %s\n",   arguments.source_ip);
+  fprintf (outstream, "source-port: %s\n\n", arguments.source_port);
+  fprintf (outstream, "dest-ip:     %s\n",   arguments.dest_ip);
+  fprintf (outstream, "dest-port:   %s\n\n", arguments.dest_port);
+  fprintf (outstream, "ARG1 = %s\nARG2 = %s\n\n", arguments.args[0], arguments.args[1]);
 
   /* If in verbose mode, print song stanza */
   if (arguments.verbose)
