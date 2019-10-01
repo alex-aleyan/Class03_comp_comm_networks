@@ -22,12 +22,25 @@ int main (int argc, char **argv)
 																												     "255.240.15.255",
 																												     "255.255.255.255",
 																												     "0.255.0.255"				   };
+  uint16_t port_ascii[NUMBER_OF_STRINGS]= { 900,
+																												     1025,
+																												     1026,
+																												     255};
 		int i;	
+
   printf("\n\n");
   for (i=0; i < NUMBER_OF_STRINGS; i++)
   { 	
 				if ( !inet_aton(ip_address_ascii[i],&adr_inet.sin_addr) )  puts ("BAD ADDRESS");
 				printf("The %s=0x%08x\n", ip_address_ascii[i], adr_inet.sin_addr);
+  }
+  printf("\n\n");
+
+  printf("\n\n");
+  for (i=0; i < NUMBER_OF_STRINGS; i++)
+  { 	
+				printf("The port[%d]=%d\n", i, port_ascii[i] );
+				printf("The port[%d]=0x%04x\n", i, htons(port_ascii[i]) );
   }
   printf("\n\n");
 
