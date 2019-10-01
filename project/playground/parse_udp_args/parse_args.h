@@ -18,7 +18,7 @@ struct arguments
 {
   char *args[2];            /* ARG1 and ARG2 */
   int verbose;              /* The -v flag */
-  char *outfile;            /* Argument for -o */
+  char *infile, *outfile;            /* Argument for -o */
   char *source_ip, *source_port;
   char *dest_ip,   *dest_port;  /* Arguments for -a and -b */
 };
@@ -32,6 +32,7 @@ static struct argp_option options[] =
   {"dest-ip",        'd', "<XX.XX.XX.XX>", 0, "Provide Destination IP/hostname"},
   {"dest-port",      'b', "<XXXX>"						 , 0, "Provide destination port number"},
   {"output",         'o', "OUTFILE"					 , 0, "Output to OUTFILE instead of to standard output"},
+  {"input-file",     'f', "INFILE"					  , 0, "Specify file name to get data from"},
   {0}
 };
 
@@ -64,13 +65,11 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
     case 'o':
       arguments->outfile = arg;
       break;
+    case 'f':
+      arguments->infile = arg;
+      break;
     case ARGP_KEY_ARG:
-      if (state->arg_num >= 2) argp_usage(state);
-      arguments->args[state->arg_num] = arg;
-      break;
-    case ARGP_KEY_END:
-      if (state->arg_num < 2) argp_usage (state);
-      break;
+      return 0;
     default:
       return ARGP_ERR_UNKNOWN;
     }

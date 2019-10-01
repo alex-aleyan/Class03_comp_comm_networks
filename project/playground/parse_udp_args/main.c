@@ -38,8 +38,8 @@ int main (int argc, char **argv)
   fprintf (outstream, "source-port: %s\n\n", arguments.source_port);
   fprintf (outstream, "dest-ip:     %s\n",   arguments.dest_ip);
   fprintf (outstream, "dest-port:   %s\n\n", arguments.dest_port);
-  fprintf (outstream, "ARG1 = %s\n",         arguments.args[0]);
-  fprintf (outstream, "ARG2 = %s\n\n",       arguments.args[1]);
+//  fprintf (outstream, "ARG1 = %s\n",         arguments.args[0]);
+//  fprintf (outstream, "ARG2 = %s\n\n",       arguments.args[1]);
 
   /* If in verbose mode, print song stanza */
   if (arguments.verbose) fprintf (outstream, waters);

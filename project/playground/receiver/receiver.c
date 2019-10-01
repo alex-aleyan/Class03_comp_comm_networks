@@ -45,8 +45,8 @@ int main (int argc, char **argv)
   fprintf (outstream, "source-port: %s\n\n", arguments.source_port);
   fprintf (outstream, "dest-ip:     %s\n",   arguments.dest_ip);
   fprintf (outstream, "dest-port:   %s\n\n", arguments.dest_port);
-  fprintf (outstream, "ARG1 = %s\n",         arguments.args[0]);
-  fprintf (outstream, "ARG2 = %s\n\n",       arguments.args[1]);
+//  fprintf (outstream, "ARG1 = %s\n",         arguments.args[0]);
+//  fprintf (outstream, "ARG2 = %s\n\n",       arguments.args[1]);
 
   /* If in verbose mode, print song stanza */
   if (arguments.verbose) fprintf (outstream, waters);
@@ -105,8 +105,8 @@ int main (int argc, char **argv)
 						  0, (struct sockaddr *) &txAddress, &txSockLen);
     if ( testToBail < 0) bail("recvfrom(2)");
     receiveDgramBuffer[testToBail] = 0; //NULL terminate the received string
-    printf("RECEIVED DGRAM: \"%s\"\n", receiveDgramBuffer);
-    printf("RECEIVED FROM: %s:%u\n\n", inet_ntoa(txAddress.sin_addr), (unsigned) ntohs(txAddress.sin_port));
+    printf("RECEIVED DGRAM:\n%s\n\n", receiveDgramBuffer);
+    printf("RECEIVED FROM: %s:%u\n\n\n", inet_ntoa(txAddress.sin_addr), (unsigned) ntohs(txAddress.sin_port));
   #ifdef BYTES
     printBytes( (unsigned char *) &txAddress, 16);
   #endif

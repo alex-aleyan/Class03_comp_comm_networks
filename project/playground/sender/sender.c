@@ -16,16 +16,23 @@
 //#define SERVER_SOCKET_IP "192.168.40.185"
 //#define SERVER_SOCKET_IP "127.0.0.1"
 //#define SERVER_SOCKET_PORT 1026
-
+#define READFILE "./file.txt"
 
 int main (int argc, char **argv)
 {
+
+
+
+
+  //##################### PARSE ARGS STARTS HERE:
+
   struct arguments arguments;
   FILE *outstream;
   char waters[] = "VERBOSEVERBOSEVERBOSEVERBOSE \n";
 
   /* Set argument defaults */
   arguments.outfile = NULL;
+  arguments.infile = NULL;
   arguments.source_ip = "";
   arguments.dest_ip = "";
   arguments.source_port = "";
@@ -45,8 +52,8 @@ int main (int argc, char **argv)
   fprintf (outstream, "source-port: %s\n\n", arguments.source_port);
   fprintf (outstream, "dest-ip:     %s\n",   arguments.dest_ip);
   fprintf (outstream, "dest-port:   %s\n\n", arguments.dest_port);
-  fprintf (outstream, "ARG1 = %s\n",         arguments.args[0]);
-  fprintf (outstream, "ARG2 = %s\n\n",       arguments.args[1]);
+//  fprintf (outstream, "ARG1 = %s\n",         arguments.args[0]);
+//  fprintf (outstream, "ARG2 = %s\n\n",       arguments.args[1]);
 
   /* If in verbose mode, print song stanza */
   if (arguments.verbose) fprintf (outstream, waters);
@@ -69,6 +76,32 @@ int main (int argc, char **argv)
 	 fprintf(outstream, "The arguments.dest_port=0x%04x\n", htons(atoi(arguments.dest_port)) );
 
 
+  //##################### OPEN FILE STARTS HERE:
+
+  /* READ THE BINARY DATA FROM A FILE: */
+  FILE *fd = NULL;
+  /* Read the data into dataArray[]. */
+  //if ((fd=fopen(READFILE,"r"))==NULL) {fprintf(stderr, "Unable to open file %s", READFILE); return 1;} 
+  if ((fd=fopen(arguments.infile,"r"))==NULL) {fprintf(stderr, "Unable to open file %s", READFILE); return 1;} 
+  fseek(fd, 0, SEEK_END); // go to the end of file
+  unsigned long fileLen=ftell(fd); //determine the length of file in bytes
+
+  #ifdef SHOW_FD
+    printf("fileLen (bytes): %d\n", fileLen);
+  #endif
+  
+  fseek(fd, 0, SEEK_SET);
+  unsigned char sendDataBuf[fileLen];
+  fread(sendDataBuf, fileLen , 1, fd);
+ 
+  #ifdef SHOW_DATA
+    unsigned char * charPtr=(unsigned char*) sendDataBuf;
+    printf("The data read from %s: ", READFILE);
+    int i; for(i=0; i<fileLen; i++) printf("0x%02x ", *(charPtr+i) );
+    printf("\n");
+  #endif
+  fclose(fd);
+
   //##################### UDP SENDER STARTS HERE:
 
   
@@ -89,7 +122,8 @@ int main (int argc, char **argv)
 
   int test = -1;
   //TX Socket, TX Data, TX Data Size, flags, RX Socket Info (DOMAIN, IP and PORT), size of RX Address Struct)
-  test=sendto(txSocket, txDgramBuffer, strlen(txDgramBuffer),\
+  /*test=sendto(txSocket, txDgramBuffer, strlen(txDgramBuffer),\ */
+  test=sendto(txSocket, sendDataBuf, strlen(sendDataBuf),\
 			  0, (struct sockaddr *) &rxAddress, sizeof(rxAddress) );
   if ( test < 0) printf("Failed to send\n");
   
