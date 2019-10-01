@@ -1,10 +1,10 @@
 /* 
-	*
-	* Citing Sources: 
-	*
-	* https://www.linuxtopia.org/online_books/programming_books/gnu_c_programming_tutorial/argp-example.html 
-	* 
-	*/
+ *
+ * Citing Sources: 
+ *
+ * https://www.linuxtopia.org/online_books/programming_books/gnu_c_programming_tutorial/argp-example.html 
+ * 
+ */
 
 #include <stdio.h>
 #include <argp.h>
