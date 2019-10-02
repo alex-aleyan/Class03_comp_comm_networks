@@ -9,26 +9,36 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+int getLinesPerFile(FILE *fp){
+				int line_count = 0;
+				char current_char;
 
+				rewind(fp);
 
+				for (current_char = getc(fp); current_char != EOF; current_char = getc(fp))	
+								if (current_char == '\n') line_count++;
 
-int main (int argc, char **argv)
+				printf("\ngetLinesPerFile: %d\n\n", line_count);
+
+				rewind(fp);
+
+				return line_count;
+}
+
+char ** getData(FILE *fp, int * number_of_lines)
 {
-				
-				FILE *fp;
-
-				fp = fopen("file.txt", "r");
-
-
-
 
 				int line_count = 0;
 				int char_count = 0;
 				char current_char;
 
+				rewind(fp);
+
 				//count the number of lines in file to determine the size of the pointer array:
 				for (current_char = getc(fp); current_char != EOF; current_char = getc(fp))	
 								if (current_char == '\n') line_count++;
+
+				*number_of_lines = line_count;
 
 				printf("\nNumber of lines: %d\n\n", line_count);
 
@@ -54,15 +64,6 @@ int main (int argc, char **argv)
 
 				rewind(fp);
 
-				//line_count=0;
-				//char current_line [255];
-				//while( fgets(current_line, 255, (FILE*) fp) )
-				//{
-				//				strcpy(line_ptr[line_count], current_line);
-				//				printf("%s", line_ptr[line_count]);
-				//				line_count++;
-			 //}
-			 
 				//copy file content to allocated memory line by line
 				//this is slower than the commented out section above since reading
 				//one character at the time but we don't have to allocate additional 255
@@ -81,6 +82,26 @@ int main (int argc, char **argv)
 												line_count++;
 								}
 				}
+
+				return line_ptr;
+}
+
+#define MAX_NUM_OF_FILES 10
+
+int main (int argc, char **argv)
+{
+				
+				FILE *fp;
+				fp = fopen("file.txt", "r");
+
+				char ** array_of_text[MAX_NUM_OF_FILES];
+				int num_of_lines;
+
+				array_of_text[0]= getData(fp, &num_of_lines);
+
+				int k=0;
+				for (k=0; k < num_of_lines; k=k+1)
+								printf("This Line: %s", array_of_text[0][k]);
 
 				fclose(fp);
 
