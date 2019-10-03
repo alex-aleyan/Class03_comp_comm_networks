@@ -1,1 +1,1 @@
-./readfile.run
+./main.run

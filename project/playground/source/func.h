@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "string.h"
+#include <errno.h>
 
 void bytes(unsigned char * address,int num);
 void printBytes(unsigned char * address,int num);

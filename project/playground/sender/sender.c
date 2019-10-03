@@ -10,13 +10,15 @@
 #include "../parse_udp_args/parse_args.h"
 #include <arpa/inet.h>  //inet_aton
 #include <netinet/in.h> //sockaddr_in
-#include "../source/func.h"
+//#include "../source/func.h"
+#include "../read_file_linebyline/readfile.h"
 
 
 //#define SERVER_SOCKET_IP "192.168.40.185"
 //#define SERVER_SOCKET_IP "127.0.0.1"
 //#define SERVER_SOCKET_PORT 1026
-#define READFILE "./file.txt"
+//#define READFILE "./file.txt"
+#define MAX_NUM_OF_FILES 10
 
 int main (int argc, char **argv)
 {
@@ -80,56 +82,100 @@ int main (int argc, char **argv)
 
   /* READ THE BINARY DATA FROM A FILE: */
   FILE *fd = NULL;
-  /* Read the data into dataArray[]. */
-  //if ((fd=fopen(READFILE,"r"))==NULL) {fprintf(stderr, "Unable to open file %s", READFILE); return 1;} 
-  if ((fd=fopen(arguments.infile,"r"))==NULL) {fprintf(stderr, "Unable to open file %s", READFILE); return 1;} 
-  fseek(fd, 0, SEEK_END); // go to the end of file
-  unsigned long fileLen=ftell(fd); //determine the length of file in bytes
+  unsigned char sendDataBuf[1];
 
-  #ifdef SHOW_FD
-    printf("fileLen (bytes): %d\n", fileLen);
-  #endif
-  
-  fseek(fd, 0, SEEK_SET);
-  unsigned char sendDataBuf[fileLen];
-  fread(sendDataBuf, fileLen , 1, fd);
- 
-  #ifdef SHOW_DATA
-    unsigned char * charPtr=(unsigned char*) sendDataBuf;
-    printf("The data read from %s: ", READFILE);
-    int i; for(i=0; i<fileLen; i++) printf("0x%02x ", *(charPtr+i) );
-    printf("\n");
-  #endif
-  fclose(fd);
+  /* Read the data into dataArray[]. */
+  //if ((fd=fopen(READFILE,"r"))==NULL) {printf(stderr, "Unable to open file %s", READFILE); return 1;} 
+  if ((fd=fopen(arguments.infile,"r"))==NULL) {printf(stderr, "Unable to open file %s", arguments.infile); return 1;} 
+
+  // Get number of lines:
+  char current_char;
+  int line_count=0;
+  for (current_char = getc(fd), line_count=0; current_char != EOF; current_char = getc(fd))  if (current_char == '\n') line_count++;
+  printf("\nNumber of lines (line_count): %d\n\n", line_count);
+  char * line_ptr[line_count];
+
+		rewind(fd);
+
+  // get number of chars per line:
+  int char_count=0;
+  int current_line=0;
+  for (current_char = getc(fd), current_line=0; current_char != EOF; current_char = getc(fd))
+  {
+      char_count++;
+      if (current_char == '\n')
+      {
+								    // allocate just enough memory to hold the characters of current line:
+          printf("Number of char per line %d: %d\n", current_line, char_count);
+          printf("Allocating: line=%d; bytes=%d: %d\n", current_line, char_count*sizeof(char)+1);
+
+          line_ptr[current_line] = malloc(char_count*sizeof(char)+1);
+          if (line_ptr[current_line] == NULL) printf("Caught NULL at malloc!!!");
+
+          char_count = 0;
+          current_line++;
+      }
+  }
+
+		rewind(fd);
+
+  printf("\n");
+
+  //copy file content to allocated memory line by line
+  for (current_char = getc(fd), current_line=0, char_count; current_char != EOF; current_char = getc(fd))
+  {
+      if (char_count == 0) printf("Line(%d):", current_line);
+
+      *(line_ptr[current_line]+char_count)=current_char;
+      char_count++;
+      if (current_char == '\n')
+      {
+          *(line_ptr[current_line]+char_count+1)='\0';
+          printf("%s", line_ptr[current_line]);
+          char_count=0;
+          current_line++;
+      }
+  }
+
+  printf("\n");
+
+  for(current_line=0; current_line<line_count; current_line++) printf("%s",line_ptr[current_line]);
+
+		rewind(fd);
+
 
   //##################### UDP SENDER STARTS HERE:
-
   
-  
-  char txDgramBuffer[512]="Hello World"; //DATA
 
   struct sockaddr_in rxAddress;
   memset(&rxAddress, 0, sizeof(rxAddress));
-  rxAddress.sin_family = AF_INET; // Receiving Socket Family
-  //rxAddress.sin_addr.s_addr = inet_addr(SERVER_SOCKET_IP);// Receiving Socket IP Address
-  //rxAddress.sin_port = htons(SERVER_SOCKET_PORT); // Receiving Socket Port Number
+
+  rxAddress.sin_family      = AF_INET; // Receiving Socket Family
   rxAddress.sin_addr.s_addr = inet_addr(arguments.dest_ip);// Receiving Socket IP Address
-  rxAddress.sin_port = htons(atoi(arguments.dest_port)); // Receiving Socket Port Number
+  rxAddress.sin_port        = htons(atoi(arguments.dest_port)); // Receiving Socket Port Number
   
   //Establish a socket connection
   int txSocket = -1;
-  txSocket = socket(AF_INET,SOCK_DGRAM,0); 
+  txSocket     = socket(AF_INET,SOCK_DGRAM,0); 
 
-  int test = -1;
-  //TX Socket, TX Data, TX Data Size, flags, RX Socket Info (DOMAIN, IP and PORT), size of RX Address Struct)
-  /*test=sendto(txSocket, txDgramBuffer, strlen(txDgramBuffer),\ */
-  test=sendto(txSocket, sendDataBuf, strlen(sendDataBuf),\
-			  0, (struct sockaddr *) &rxAddress, sizeof(rxAddress) );
-  if ( test < 0) printf("Failed to send\n");
-  
-  #ifdef BYTES
-  printBytes( (unsigned char *) &rxAddress, 16);
-  #endif
-  
+  //for(current_line=0; current_line<line_count; current_line++) printf("%s",line_ptr[current_line]);
+
+  //Send data:
+  int test;
+  for(current_line=0, test=-1; current_line<line_count; current_line++)
+  {
+    //TX Socket, TX Data, TX Data Size, flags, RX Socket Info (DOMAIN, IP and PORT), size of RX Address Struct)
+				test=sendto(txSocket, line_ptr[current_line], strlen(line_ptr[current_line]), 0, (struct sockaddr *) &rxAddress, sizeof(rxAddress) );
+				if ( test < 0) printf("Failed to send\n");
+  }
+
+
+  /*
+  for(current_line=0; current_line<line_count; current_line++)
+  {
+				free(line_ptr[0][current_line]);
+  }
+  */ 
+
   return 0;
 }
