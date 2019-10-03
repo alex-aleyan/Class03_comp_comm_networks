@@ -40,42 +40,40 @@ int main (int argc, char **argv)
   else                   outstream = stdout;
 
   /* Print argument values */
-  fprintf (outstream, "\n");
-  fprintf (outstream, "source-ip:   %s\n",   arguments.source_ip);
-  fprintf (outstream, "source-port: %s\n\n", arguments.source_port);
-  fprintf (outstream, "dest-ip:     %s\n",   arguments.dest_ip);
-  fprintf (outstream, "dest-port:   %s\n\n", arguments.dest_port);
-//  fprintf (outstream, "ARG1 = %s\n",         arguments.args[0]);
-//  fprintf (outstream, "ARG2 = %s\n\n",       arguments.args[1]);
+  printf ( "\n");
+  printf ( "source-ip:   %s\n",   arguments.source_ip);
+  printf ( "source-port: %s\n\n", arguments.source_port);
+  printf ( "dest-ip:     %s\n",   arguments.dest_ip);
+  printf ( "dest-port:   %s\n\n", arguments.dest_port);
+//  printf ( "ARG1 = %s\n",         arguments.args[0]);
+//  printf ( "ARG2 = %s\n\n",       arguments.args[1]);
 
   /* If in verbose mode, print song stanza */
-  if (arguments.verbose) fprintf (outstream, waters);
+  if (arguments.verbose) printf ( waters);
 
   struct sockaddr_in adr_inet;
 
   if ( !inet_aton(arguments.source_ip, &adr_inet.sin_addr) )  puts ("BAD ADDRESS");
-  fprintf(outstream, "The arguments.source_ip=%s\n",   arguments.source_ip);
-  fprintf(outstream, "The arguments.source_ip=0x%08x\n\n", adr_inet.sin_addr);
+  printf( "The arguments.source_ip=%s\n",   arguments.source_ip);
+  printf( "The arguments.source_ip=0x%08x\n\n", adr_inet.sin_addr);
 
-  fprintf(outstream, "The arguments.source_port=%d\n", atoi(arguments.source_port) );
-	 fprintf(outstream, "The arguments.source_port=0x%04x\n\n", htons(atoi(arguments.source_port)) );
+  printf( "The arguments.source_port=%d\n", atoi(arguments.source_port) );
+	 printf( "The arguments.source_port=0x%04x\n\n", htons(atoi(arguments.source_port)) );
 
 
-  if ( !inet_aton(arguments.dest_ip, &adr_inet.sin_addr) )  puts ("BAD ADDRESS");
-  fprintf(outstream, "The arguments.dest_ip=%s\n",   arguments.dest_ip);
-  fprintf(outstream, "The arguments.dest_ip=0x%08x\n\n", adr_inet.sin_addr);
+  
 
-  fprintf(outstream, "The arguments.dest_port=%d\n", atoi(arguments.dest_port) );
-	 fprintf(outstream, "The arguments.dest_port=0x%04x\n", htons(atoi(arguments.dest_port)) );
 
 
   //##################### UDP RECEIVER STARTS HERE:
+
+  #define MAX_NUM_OF_TEXT_LINES_PER_FILE 10
 
   int testToBail;
   struct sockaddr_in rxAddress; // AF_INET
   struct sockaddr_in txAddress; // AF_INET
   int rxSocket;
-  char receiveDgramBuffer[512];	// Receive Buffer
+  char receiveDgramBuffer[MAX_NUM_OF_TEXT_LINES_PER_FILE][512];	// Receive Buffer
   
   //OPEN A SOCKET AND CATCH THE FD:
   rxSocket = socket(AF_INET,SOCK_DGRAM,0);
@@ -101,23 +99,39 @@ int main (int argc, char **argv)
   int txSockLen;
   txSockLen = sizeof(txAddress);
   
-  for(;;)
+
+  int current_line;
+  for(current_line=0;current_line<MAX_NUM_OF_TEXT_LINES_PER_FILE;current_line++)
   {
     //RECEIVE THE DATA:
     //testToBail = recvfrom(rxSocket, receiveDgramBuffer, sizeof(receiveDgramBuffer), 0, (struct sockaddr *) &txAddress, &txSockLen);
-    testToBail = read(rxSocket, receiveDgramBuffer, sizeof(receiveDgramBuffer) );
+    testToBail = read(rxSocket, receiveDgramBuffer[current_line], sizeof(receiveDgramBuffer) );
     if ( testToBail < 0) bail("recvfrom(2)");
-    receiveDgramBuffer[testToBail] = 0; //NULL terminate the received string
-    printf("RECEIVED DGRAM:\n%s", receiveDgramBuffer);
+    receiveDgramBuffer[current_line][testToBail] = '\0'; //NULL terminate the received string
+
+    printf("RECEIVED DGRAM:\n%s", receiveDgramBuffer[current_line]);
     printf("RECEIVED FROM: %s:%u\n\n", inet_ntoa(txAddress.sin_addr), (unsigned) ntohs(txAddress.sin_port));
-  #ifdef BYTES
-    printBytes( (unsigned char *) &txAddress, 16);
-  #endif
   }
-  
-   //testToBail = sendto(rxSocket, sendDgramBuffer, strlen(sendDgramBuffer), 0, (struct sockaddr *) &txAddress, inetSocketLength );
-  
+
+  for(current_line=0;current_line<MAX_NUM_OF_TEXT_LINES_PER_FILE;current_line++)
+  {
+				printf("BOOOOP:%s", receiveDgramBuffer[current_line]);
+  }
+
   shutdown(rxSocket, SHUT_RDWR);
+
+  //##################### OPEN FILE STARTS HERE:
+
+  FILE *fd = NULL;
+  if ((fd=fopen(arguments.outfile,"w"))==NULL) {printf(stderr, "Unable to open file %s!!!!!!", arguments.outfile); return 1;}
+  else
+  {
+    fflush(fd);
+    for(current_line=0;current_line<MAX_NUM_OF_TEXT_LINES_PER_FILE;current_line++)
+      fputs(receiveDgramBuffer[current_line], fd);
+    fclose(fd);
+  }  
+  
   
   return 0;
 }

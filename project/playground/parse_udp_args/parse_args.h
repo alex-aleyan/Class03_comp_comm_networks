@@ -31,7 +31,7 @@ static struct argp_option options[] =
   {"source-port",    'p', "<XXXX>"						 , 0, "Provide source port number > 1025"},
   {"dest-ip",        'd', "<XX.XX.XX.XX>", 0, "Provide Destination IP/hostname"},
   {"dest-port",      'b', "<XXXX>"						 , 0, "Provide destination port number"},
-  {"output",         'o', "OUTFILE"					 , 0, "Output to OUTFILE instead of to standard output"},
+  {"output-file",         'o', "OUTFILE"					 , 0, "Output to OUTFILE instead of to standard output"},
   {"input-file",     'f', "INFILE"					  , 0, "Specify file name to get data from"},
   {0}
 };
