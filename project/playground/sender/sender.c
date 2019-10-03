@@ -130,7 +130,7 @@ int main (int argc, char **argv)
       char_count++;
       if (current_char == '\n')
       {
-          *(line_ptr[current_line]+char_count+1)='\0';
+          *(line_ptr[current_line]+char_count)='\0';
           printf("%s", line_ptr[current_line]);
           char_count=0;
           current_line++;
@@ -164,6 +164,7 @@ int main (int argc, char **argv)
   int test;
   for(current_line=0, test=-1; current_line<line_count; current_line++)
   {
+    printf("STRLEN: %d\n", strlen(line_ptr[current_line]) );
     //TX Socket, TX Data, TX Data Size, flags, RX Socket Info (DOMAIN, IP and PORT), size of RX Address Struct)
 				test=sendto(txSocket, line_ptr[current_line], strlen(line_ptr[current_line]), 0, (struct sockaddr *) &rxAddress, sizeof(rxAddress) );
 				if ( test < 0) printf("Failed to send\n");
