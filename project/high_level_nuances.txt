@@ -1,0 +1,14 @@
+Client needs to:
+  Get file's source /<path>/<filename>
+  Get file's destination /<path>/<filename>
+  Create "file name" tag per file transfer.
+
+Initiation Header needs to have:
+  file name tag,
+  destination /<path>/<filename>
+  number of text lines to transfer for current file
+
+
+  
+
+

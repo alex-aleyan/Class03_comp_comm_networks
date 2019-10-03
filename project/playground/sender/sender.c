@@ -13,11 +13,6 @@
 //#include "../source/func.h"
 #include "../read_file_linebyline/readfile.h"
 
-
-//#define SERVER_SOCKET_IP "192.168.40.185"
-//#define SERVER_SOCKET_IP "127.0.0.1"
-//#define SERVER_SOCKET_PORT 1026
-//#define READFILE "./file.txt"
 #define MAX_NUM_OF_FILES 10
 
 int main (int argc, char **argv)
@@ -154,9 +149,10 @@ int main (int argc, char **argv)
   rxAddress.sin_addr.s_addr = inet_addr(arguments.dest_ip);// Receiving Socket IP Address
   rxAddress.sin_port        = htons(atoi(arguments.dest_port)); // Receiving Socket Port Number
   
-  //Establish a socket connection
   int txSocket = -1;
+  //OPEN A SOCKET AND CATCH THE FD:
   txSocket     = socket(AF_INET,SOCK_DGRAM,0); 
+  if (txSocket < 0) {perror("error: failed to open datagram socket\n"); exit(1); }
 
   //for(current_line=0; current_line<line_count; current_line++) printf("%s",line_ptr[current_line]);
 
@@ -165,18 +161,19 @@ int main (int argc, char **argv)
   for(current_line=0, test=-1; current_line<line_count; current_line++)
   {
     printf("STRLEN: %d\n", strlen(line_ptr[current_line]) );
-    //TX Socket, TX Data, TX Data Size, flags, RX Socket Info (DOMAIN, IP and PORT), size of RX Address Struct)
+    //SEND THE DATA: TX Socket, TX Data, TX Data Size, flags, RX Socket Info (DOMAIN, IP and PORT), size of RX Address Struct)
 				test=sendto(txSocket, line_ptr[current_line], strlen(line_ptr[current_line]), 0, (struct sockaddr *) &rxAddress, sizeof(rxAddress) );
+				//test=write(txSocket, line_ptr[current_line], strlen(line_ptr[current_line]) );
 				if ( test < 0) printf("Failed to send\n");
   }
 
 
-  /*
+  
   for(current_line=0; current_line<line_count; current_line++)
   {
-				free(line_ptr[0][current_line]);
+				free(line_ptr[current_line]);
   }
-  */ 
+  
 
   return 0;
 }

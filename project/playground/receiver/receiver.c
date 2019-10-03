@@ -77,6 +77,7 @@ int main (int argc, char **argv)
   int rxSocket;
   char receiveDgramBuffer[512];	// Receive Buffer
   
+  //OPEN A SOCKET AND CATCH THE FD:
   rxSocket = socket(AF_INET,SOCK_DGRAM,0);
   if (rxSocket == -1) bail("Failed to create a socket; see line: rxSocket=socket(AF_INET,SOCKET_DGRAM,0);");
   
@@ -90,6 +91,7 @@ int main (int argc, char **argv)
   //inetSocketLength = sizeof(rxAddress);
   printf("FD returned by socket(): %d\n", rxSocket);
   
+  //BIND THE SOCKET TO A GIVEN IP/PORT:
   testToBail = bind(rxSocket, (struct sockaddr *) &rxAddress, sizeof(rxAddress));
   if (testToBail == -1) bail("bind()");
   
@@ -101,8 +103,9 @@ int main (int argc, char **argv)
   
   for(;;)
   {
-    testToBail = recvfrom(rxSocket, receiveDgramBuffer, sizeof(receiveDgramBuffer),\
-						  0, (struct sockaddr *) &txAddress, &txSockLen);
+    //RECEIVE THE DATA:
+    //testToBail = recvfrom(rxSocket, receiveDgramBuffer, sizeof(receiveDgramBuffer), 0, (struct sockaddr *) &txAddress, &txSockLen);
+    testToBail = read(rxSocket, receiveDgramBuffer, sizeof(receiveDgramBuffer) );
     if ( testToBail < 0) bail("recvfrom(2)");
     receiveDgramBuffer[testToBail] = 0; //NULL terminate the received string
     printf("RECEIVED DGRAM:\n%s", receiveDgramBuffer);
