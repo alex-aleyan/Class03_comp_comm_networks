@@ -30,6 +30,7 @@ int main (int argc, char **argv)
     arguments.source_port = "";
     arguments.dest_port = "";
     arguments.verbose = 0;
+    arguments.debug   = 0;
   
     // Parse the Arguments:
     argp_parse (&argp, argc, argv, 0, 0, &arguments);
@@ -60,9 +61,10 @@ int main (int argc, char **argv)
     if ( !inet_aton(arguments.dest_ip, &adr_inet.sin_addr) ) { printf("BAD ADDRESS %s\n", arguments.dest_ip); return -1;}
     if ( !inet_aton(arguments.dest_port, &adr_inet.sin_port) ) { printf("Bad Port: %s\n", arguments.dest_port); return -1;}
 
-    printf( "The arguments.dest_ip=%s\n",   arguments.dest_ip);
-    printf( "The arguments.dest_port=%d\n\n", atoi(arguments.dest_port) );
-  	 //printf( "The arguments.dest_port=0x%04x\n", htons(atoi(arguments.dest_port)) );
+				if (arguments.debug != 0) {
+								printf( "The arguments.dest_ip=%s\n",   arguments.dest_ip);
+								printf( "The arguments.dest_port=%d\n\n", atoi(arguments.dest_port) );
+				}
 
   
   
@@ -72,7 +74,6 @@ int main (int argc, char **argv)
     FILE *fd = NULL;
   
     /* Read the data into dataArray[]. */
-    //if ((fd=fopen(READFILE,"r"))==NULL) {printf(stderr, "Unable to open file %s", READFILE); return 1;} 
     if ((fd=fopen(arguments.infile,"r"))==NULL) {
 								fprintf(stderr, "Unable to open file:%s\nUse --input-file option, and make sure the file is present.\n", arguments.infile); 
 								return -1;
@@ -82,7 +83,7 @@ int main (int argc, char **argv)
     char current_char;
     int line_count=0;
     for (current_char = getc(fd), line_count=0; current_char != EOF; current_char = getc(fd))  if (current_char == '\n') line_count++;
-    printf("\nNumber of lines (line_count): %d\n\n", line_count);
+				if (arguments.debug != 0) 	printf("\nNumber of lines (line_count): %d\n\n", line_count);
     char * line_ptr[line_count];
   
   		rewind(fd);
@@ -96,8 +97,10 @@ int main (int argc, char **argv)
         if (current_char == '\n')
         {
   								    // allocate just enough memory to hold the characters of current line:
-            printf("Number of char per line %d: %d\n", current_line, char_count);
-            printf("Allocating: line=%d; bytes=%d: %d\n", current_line, char_count*sizeof(char)+1);
+												if (arguments.debug != 0) {
+																printf("Number of char per line %d: %d\n", current_line, char_count);
+																printf("Allocating: line=%d; bytes=%d: %d\n", current_line, char_count*sizeof(char)+1);
+												}
   
             line_ptr[current_line] = malloc(char_count*sizeof(char)+1);
             if (line_ptr[current_line] == NULL) printf("Caught NULL at malloc!!!");
@@ -132,7 +135,7 @@ int main (int argc, char **argv)
   
     printf("\n");
   
-    for(current_line=0; current_line<line_count; current_line++) printf("%s",line_ptr[current_line]);
+				if (arguments.debug != 0) { for(current_line=0; current_line<line_count; current_line++) printf("%s",line_ptr[current_line]); }
   
   		rewind(fd);
   
@@ -147,10 +150,10 @@ int main (int argc, char **argv)
     dest_address.sin_addr.s_addr = inet_addr(arguments.dest_ip);// Receiving Socket IP Address
     dest_address.sin_port        = htons(atoi(arguments.dest_port)); // Receiving Socket Port Number
 
-				if (arguments.verbose != 0) {
-								printf( "The dest_address.sin_family     =AF_INET\n");
-								printf( "The dest_address.sin_addr.s_addr=0x%08x\n", dest_address.sin_addr.s_addr);
-								printf( "The dest_address.sin_port       =0x%04x\n\n", dest_address.sin_port);
+				if (arguments.debug != 0) {
+								printf( "dest_address.sin_family      =AF_INET\n");
+								printf( "dest_address.sin_addr.s_addr =0x%08x\n", dest_address.sin_addr.s_addr);
+								printf( "dest_address.sin_port        =0x%04x\n\n", dest_address.sin_port);
 				}
     
     int tx_socket_fd = -1;
@@ -164,7 +167,9 @@ int main (int argc, char **argv)
     int test;
     for(current_line=0, test=-1; current_line<line_count; current_line++)
     {
-        printf("strlen: %d\n", strlen(line_ptr[current_line]) );
+								if (arguments.debug != 0) {
+												printf("strlen: %d\n", strlen(line_ptr[current_line]) );
+								}
 
         //SEND THE DATA: TX Socket, TX Data, TX Data Size, flags, RX Socket Info (DOMAIN, IP and PORT), size of RX Address Struct)
     				test=sendto( tx_socket_fd, 

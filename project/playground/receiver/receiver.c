@@ -26,11 +26,12 @@ int main (int argc, char **argv)
 
   /* Set argument defaults */
   arguments.outfile = NULL;
-  arguments.source_ip = "";
-  arguments.dest_ip = "";
+  arguments.source_ip   = "";
   arguments.source_port = "";
+  arguments.dest_ip   = "";
   arguments.dest_port = "";
   arguments.verbose = 0;
+  arguments.debug   = 0;
 
   /* Where the magic happens */
   argp_parse (&argp, argc, argv, 0, 0, &arguments);
@@ -113,10 +114,7 @@ int main (int argc, char **argv)
     printf("RECEIVED FROM: %s:%u\n\n", inet_ntoa(txAddress.sin_addr), (unsigned) ntohs(txAddress.sin_port));
   }
 
-  for(current_line=0;current_line<MAX_NUM_OF_TEXT_LINES_PER_FILE;current_line++)
-  {
-				printf("BOOOOP:%s", receiveDgramBuffer[current_line]);
-  }
+  for(current_line=0;current_line<MAX_NUM_OF_TEXT_LINES_PER_FILE;current_line++)	printf("%s", receiveDgramBuffer[current_line]);
 
   shutdown(rxSocket, SHUT_RDWR);
 
