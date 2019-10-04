@@ -26,8 +26,8 @@ int main (int argc, char **argv)
     arguments.outfile = NULL;
     arguments.infile = NULL;
     arguments.source_ip = "";
-    arguments.dest_ip = "";
     arguments.source_port = "";
+    arguments.dest_ip = "";
     arguments.dest_port = "";
     arguments.verbose = 0;
     arguments.debug   = 0;
@@ -40,7 +40,6 @@ int main (int argc, char **argv)
     //if (arguments.outfile) outstream = fopen (arguments.outfile, "w");
     //else                   outstream = stdout;
   
-    //
     if (arguments.verbose != 0){
 								printf ( "\n");
 								printf ( "These arguments received:\n");
@@ -143,17 +142,17 @@ int main (int argc, char **argv)
     //##################### UDP SENDER STARTS HERE:##################################
     
   
-    struct sockaddr_in dest_address;
-    memset(&dest_address, 0, sizeof(dest_address));
+    struct sockaddr_in tx_to_address;
+    memset(&tx_to_address, 0, sizeof(tx_to_address));
   
-    dest_address.sin_family      = AF_INET; // Receiving Socket Family
-    dest_address.sin_addr.s_addr = inet_addr(arguments.dest_ip);// Receiving Socket IP Address
-    dest_address.sin_port        = htons(atoi(arguments.dest_port)); // Receiving Socket Port Number
+    tx_to_address.sin_family      = AF_INET; // Receiving Socket Family
+    tx_to_address.sin_addr.s_addr = inet_addr(arguments.dest_ip);// Receiving Socket IP Address
+    tx_to_address.sin_port        = htons(atoi(arguments.dest_port)); // Receiving Socket Port Number
 
 				if (arguments.debug != 0) {
-								printf( "dest_address.sin_family      =AF_INET\n");
-								printf( "dest_address.sin_addr.s_addr =0x%08x\n", dest_address.sin_addr.s_addr);
-								printf( "dest_address.sin_port        =0x%04x\n\n", dest_address.sin_port);
+								printf( "tx_to_address.sin_family      =AF_INET\n");
+								printf( "tx_to_address.sin_addr.s_addr =0x%08x\n", tx_to_address.sin_addr.s_addr);
+								printf( "tx_to_address.sin_port        =0x%04x\n\n", tx_to_address.sin_port);
 				}
     
     int tx_socket_fd = -1;
@@ -176,8 +175,8 @@ int main (int argc, char **argv)
                      line_ptr[current_line], \
                      strlen(line_ptr[current_line]), \
                      0, \
-                     (struct sockaddr *) &dest_address, \
-                     sizeof(dest_address)                   );
+                     (struct sockaddr *) &tx_to_address, \
+                     sizeof(tx_to_address)                   );
 
     				if ( test < 0) printf("Failed to send line(%d).\n", current_line);
     }

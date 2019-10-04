@@ -25,4 +25,4 @@ non_debug:
 
 clean : 
 #rm -f $(SERVER_TARGET) $(CLIENT_TARGET)
-	rm -f *.run *.i *.o *.s *.core
+	rm -f *.run *.i *.o *.s *.core dump*
