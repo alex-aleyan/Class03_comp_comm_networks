@@ -26,68 +26,74 @@ int getLinesPerFile(FILE *fp){
 				return line_count;
 }
 
-char ** getData(FILE *fp, int * number_of_lines)
+char ** getData(FILE *fd, int * number_of_lines, int debug, char * line_ptr2[])
 {
 
-				int line_count = 0;
-				int char_count = 0;
-				char current_char;
+    // Get number of lines:
+    char current_char;
+    int line_count=0;
+    for (current_char = getc(fd), line_count=0; current_char != EOF; current_char = getc(fd))  if (current_char == '\n') line_count++;
+				if (debug != 0) 	printf("\nNumber of lines (line_count): %d\n\n", line_count);
+				if (line_count == 0){ perror("Error: file-in is empty!\n\n"); return -1; };
+    char * line_ptr[line_count];
+				(*number_of_lines)=line_count;
+  
+  		rewind(fd);
 
-				rewind(fp);
+    // get number of chars per line:
+    int char_count=0;
+    int current_line=0;
+    for (current_char = getc(fd), current_line=0; current_char != EOF; current_char = getc(fd))
+    {
+        char_count++;
+        if (current_char == '\n')
+        {
+  								    // allocate just enough memory to hold the characters of current line:
+												if (debug != 0) {
+																printf("Number of char per line %d: %d\n", current_line, char_count);
+																printf("Allocating: line=%d; bytes=%d: %d\n", current_line, char_count*sizeof(char)+1);
+												}
+  
+            line_ptr[current_line] = malloc(char_count*sizeof(char)+1);
+												line_ptr2[current_line] = line_ptr[current_line];
+												if (debug != 0) printf("Line=%d stored at 0x%x\n\n", current_line, line_ptr[current_line]);
+            if (line_ptr[current_line] == NULL) {printf("Caught NULL at malloc!!!"); return -1;};
+  
+            char_count = 0;
+            current_line++;
+        }
+    }
+  
+  		rewind(fd);
+  
+    printf("\n");
 
-				//count the number of lines in file to determine the size of the pointer array:
-				for (current_char = getc(fp); current_char != EOF; current_char = getc(fp))	
-								if (current_char == '\n') line_count++;
 
-				*number_of_lines = line_count;
-
-				printf("\nNumber of lines (*number_of_lines): %d\n\n", line_count);
-
-				//allocate an array of pointers (1 pointer per line of text in file):
-				char * line_ptr[line_count];
-
-				// determine number of chars per each line and allocate just enough memory per each line of text:
-				rewind(fp);
-				for (current_char = getc(fp), line_count=0; current_char != EOF; current_char = getc(fp))	
-				{
-								char_count++;
-								if (current_char == '\n') 
-								{
-												// allocate just enough memory to hold the characters of current line:
-												printf("Number of char per line %d: %d\n", line_count, char_count);
-												printf("Allocating: line=%d; bytes=%d: %d\n", line_count, char_count*sizeof(char)+1);
-												line_ptr[line_count] = malloc(char_count*sizeof(char)+1);
-												if (line_ptr[line_count] == NULL) printf("Caught NULL at malloc!!!");
-												char_count = 0;
-												line_count++;
+  
+    //copy file content to allocated memory line by line one charachter at the time:
+    for (current_char = getc(fd), current_line=0, char_count; current_char != EOF; current_char = getc(fd))
+    {
+								if (debug != 0) {
+												if (char_count == 0) printf("Line(%d):", current_line);
 								}
-				}
+  
+        *(line_ptr[current_line]+char_count)=current_char;
+        char_count++;
+        if (current_char == '\n')
+        {
+            //terminate with NULL:
+            *(line_ptr[current_line]+char_count)='\0';
+												if (debug != 0) printf("%s", line_ptr[current_line]);
+            char_count=0;
+            current_line++;
+        }
+    }
+  
+    printf("\n");
 
-				printf("\n");
+  		rewind(fd);
 
-				rewind(fp);
 
-				//copy file content to allocated memory line by line
-				//this is slower than the commented out section above since reading
-				//one character at the time but we don't have to allocate additional 255
-				//bytes of data
-				line_count=0;
-				char_count=0;
-				for (current_char = getc(fp); current_char != EOF; current_char = getc(fp))	
-				{
-								*(line_ptr[line_count]+char_count)=current_char;
-								char_count++;
-								if (current_char == '\n') 
-								{
-								    *(line_ptr[line_count]+char_count)='\0';
-												printf("Line(%d): ", line_count);
-												printf("%s", line_ptr[line_count]);
-												char_count=0;
-												line_count++;
-								}
-				}
 
 				return line_ptr;
 }
-
-

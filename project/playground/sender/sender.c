@@ -69,74 +69,93 @@ int main (int argc, char **argv)
   
     //##################### OPEN FILE STARTS HERE:##################################
   
-    /* READ THE BINARY DATA FROM A FILE: */
+    // Create file descriptor:
     FILE *fd = NULL;
   
-    /* Read the data into dataArray[]. */
     if ((fd=fopen(arguments.infile,"r"))==NULL) {
 								fprintf(stderr, "Unable to open file:%s\nUse --input-file option, and make sure the file is present.\n", arguments.infile); 
 								return -1;
     } 
-  
-    // Get number of lines:
-    char current_char;
-    int line_count=0;
-    for (current_char = getc(fd), line_count=0; current_char != EOF; current_char = getc(fd))  if (current_char == '\n') line_count++;
-				if (arguments.debug != 0) 	printf("\nNumber of lines (line_count): %d\n\n", line_count);
-    char * line_ptr[line_count];
-  
-  		rewind(fd);
-  
-    // get number of chars per line:
-    int char_count=0;
+
+				
+				int line_count=0;
     int current_line=0;
-    for (current_char = getc(fd), current_line=0; current_char != EOF; current_char = getc(fd))
-    {
-        char_count++;
-        if (current_char == '\n')
-        {
-  								    // allocate just enough memory to hold the characters of current line:
-												if (arguments.debug != 0) {
-																printf("Number of char per line %d: %d\n", current_line, char_count);
-																printf("Allocating: line=%d; bytes=%d: %d\n", current_line, char_count*sizeof(char)+1);
-												}
-  
-            line_ptr[current_line] = malloc(char_count*sizeof(char)+1);
-            if (line_ptr[current_line] == NULL) printf("Caught NULL at malloc!!!");
-  
-            char_count = 0;
-            current_line++;
-        }
-    }
-  
-  		rewind(fd);
-  
-    printf("\n");
-  
-    //copy file content to allocated memory line by line one charachter at the time:
-    for (current_char = getc(fd), current_line=0, char_count; current_char != EOF; current_char = getc(fd))
-    {
-								if (arguments.verbose != 0) {
-												if (char_count == 0) printf("Line(%d):", current_line);
-								}
-  
-        *(line_ptr[current_line]+char_count)=current_char;
-        char_count++;
-        if (current_char == '\n')
-        {
-            //terminate with NULL:
-            *(line_ptr[current_line]+char_count)='\0';
-												if (arguments.verbose != 0) printf("%s", line_ptr[current_line]);
-            char_count=0;
-            current_line++;
-        }
-    }
-  
-    printf("\n");
+
+    char * line_ptr[getLinesPerFile(fd)];
+
+				getData(fd, &line_count, 1, line_ptr);
+
+				printf("LINE COUNT:%d\n",line_count);				
+
+
+
+    for(current_line=0; current_line<line_count; current_line++){
+								printf("%s",line_ptr[current_line]);
+								printf("Line=%d stored at 0x%x\n\n", current_line, line_ptr[current_line]);
+				}
+
+      
+//    // Get number of lines:
+//    char current_char;
+//    int line_count=0;
+//    for (current_char = getc(fd), line_count=0; current_char != EOF; current_char = getc(fd))  if (current_char == '\n') line_count++;
+//				if (arguments.debug != 0) 	printf("\nNumber of lines (line_count): %d\n\n", line_count);
+//    char * line_ptr[line_count];
+//  
+//  		rewind(fd);
+//  
+//    // get number of chars per line:
+//    int char_count=0;
+//    int current_line=0;
+//    for (current_char = getc(fd), current_line=0; current_char != EOF; current_char = getc(fd))
+//    {
+//        char_count++;
+//        if (current_char == '\n')
+//        {
+//  								    // allocate just enough memory to hold the characters of current line:
+//												if (arguments.debug != 0) {
+//																printf("Number of char per line %d: %d\n", current_line, char_count);
+//																printf("Allocating: line=%d; bytes=%d: %d\n", current_line, char_count*sizeof(char)+1);
+//												}
+//  
+//            line_ptr[current_line] = malloc(char_count*sizeof(char)+1);
+//            if (line_ptr[current_line] == NULL) printf("Caught NULL at malloc!!!");
+//  
+//            char_count = 0;
+//            current_line++;
+//        }
+//    }
+//  
+//  		rewind(fd);
+//  
+//    printf("\n");
+//  
+//    //copy file content to allocated memory line by line one charachter at the time:
+//    for (current_char = getc(fd), current_line=0, char_count; current_char != EOF; current_char = getc(fd))
+//    {
+//								if (arguments.verbose != 0) {
+//												if (char_count == 0) printf("Line(%d):", current_line);
+//								}
+//  
+//        *(line_ptr[current_line]+char_count)=current_char;
+//        char_count++;
+//        if (current_char == '\n')
+//        {
+//            //terminate with NULL:
+//            *(line_ptr[current_line]+char_count)='\0';
+//												if (arguments.verbose != 0) printf("%s", line_ptr[current_line]);
+//            char_count=0;
+//            current_line++;
+//        }
+//    }
+//  
+//    printf("\n");
+//
+//  		rewind(fd);
   
 				if (arguments.debug != 0) { for(current_line=0; current_line<line_count; current_line++) printf("%s",line_ptr[current_line]); }
   
-  		rewind(fd);
+
   
   
     //##################### UDP SENDER STARTS HERE:##################################
@@ -161,7 +180,7 @@ int main (int argc, char **argv)
     tx_socket_fd     = socket(AF_INET,SOCK_DGRAM,0); 
     if (tx_socket_fd < 0) {perror("error: failed to open datagram socket\n"); exit(1); }
   
-    //for(current_line=0; current_line<line_count; current_line++) printf("%s",line_ptr[current_line]);
+    for(current_line=0; current_line<line_count; current_line++) printf("%s",line_ptr[current_line]);
   
     //Send data:
     int test;
