@@ -43,17 +43,17 @@ int main (int argc, char **argv)
     //else                   outstream = stdout;
   
     if (arguments.verbose != 0){
-								printf ( "\n");
-								printf ( "These arguments received:\n");
-								printf ( "  --dest-ip:    \"%s\"\n",   arguments.dest_ip);
-								printf ( "  --dest-port:  \"%s\"\n", arguments.dest_port);
-								printf ( "  --input-file: \"%s\"\n\n", arguments.infile);
-				}
+        printf ( "\n");
+        printf ( "These arguments received:\n");
+        printf ( "  --dest-ip:    \"%s\"\n",   arguments.dest_ip);
+        printf ( "  --dest-port:  \"%s\"\n", arguments.dest_port);
+        printf ( "  --input-file: \"%s\"\n\n", arguments.infile);
+    }
 
-				//Make sure dest ip and dest port are provided via options:
+    //Make sure dest ip and dest port are provided via options:
     if (arguments.dest_ip == "" || arguments.dest_port == "") {
-								fprintf(stderr, "Make sure to provide --dest-ip and --dest-port\nUse --help for more information.\n"); 
-								return -1;
+        fprintf(stderr, "Make sure to provide --dest-ip and --dest-port\nUse --help for more information.\n"); 
+        return -1;
     } 
   
     struct sockaddr_in adr_inet;
@@ -62,37 +62,35 @@ int main (int argc, char **argv)
     if ( !inet_aton(arguments.dest_ip, &adr_inet.sin_addr) ) { printf("BAD ADDRESS %s\n", arguments.dest_ip); return -1;}
     if ( !inet_aton(arguments.dest_port, &adr_inet.sin_port) ) { printf("Bad Port: %s\n", arguments.dest_port); return -1;}
 
-				if (arguments.debug != 0) {
-								printf( "The arguments.dest_ip=%s\n",   arguments.dest_ip);
-								printf( "The arguments.dest_port=%d\n\n", atoi(arguments.dest_port) );
-				}
-
+    if (arguments.debug != 0) {
+        printf( "The arguments.dest_ip=%s\n",   arguments.dest_ip);
+        printf( "The arguments.dest_port=%d\n\n", atoi(arguments.dest_port) );
+    }
   
     //##################### OPEN FILE STARTS HERE:##################################
-  
 
     // Create file descriptor:
     FILE *fd = NULL;
   
     if ((fd=fopen(arguments.infile,"r"))==NULL) {
-								fprintf(stderr, "Unable to open file:%s\nUse --input-file option, and make sure the file is present.\n", arguments.infile); 
-								return -1;
+        fprintf(stderr, "Unable to open file:%s\nUse --input-file option, and make sure the file is present.\n", arguments.infile); 
+        return -1; 
     } 
-				
-				int line_count=0;
+ 
+    int line_count=0;
     int current_line=0;
 
     char * text_line[getLinesPerFile(fd)];
 
-				getData(fd, &line_count, 1, text_line);
+    getData(fd, &line_count, 1, text_line);
 
-				if (arguments.debug != 0) {
-								printf("LINE COUNT:%d\n",line_count);				
-								for(current_line=0; current_line<line_count; current_line++){
-												printf("%s",text_line[current_line]);
-												printf("Line=%d stored at 0x%x\n\n", current_line, text_line[current_line]);
-								}
-				}
+    if (arguments.debug != 0) {
+        printf("LINE COUNT:%d\n",line_count);                
+        for(current_line=0; current_line<line_count; current_line++){
+            printf("%s",text_line[current_line]);
+            printf("Line=%d stored at 0x%x\n\n", current_line, text_line[current_line]);
+        }
+    }
   
 
     //##################### UDP SENDER STARTS HERE:##################################
@@ -106,11 +104,11 @@ int main (int argc, char **argv)
     tx_to_address.sin_addr.s_addr = inet_addr(arguments.dest_ip);// Receiving Socket IP Address
     tx_to_address.sin_port        = htons(atoi(arguments.dest_port)); // Receiving Socket Port Number
 
-				if (arguments.debug != 0) {
-								printf( "tx_to_address.sin_family      = AF_INET\n");
-								printf( "tx_to_address.sin_addr.s_addr = 0x%08x\n", tx_to_address.sin_addr.s_addr);
-								printf( "tx_to_address.sin_port        = 0x%04x\n\n", tx_to_address.sin_port);
-				}
+    if (arguments.debug != 0) {
+        printf( "tx_to_address.sin_family      = AF_INET\n");
+        printf( "tx_to_address.sin_addr.s_addr = 0x%08x\n", tx_to_address.sin_addr.s_addr);
+        printf( "tx_to_address.sin_port        = 0x%04x\n\n", tx_to_address.sin_port);
+    }
     
     //OPEN A SOCKET AND CATCH THE FD:
     int tx_socket_fd = -1;
@@ -123,25 +121,24 @@ int main (int argc, char **argv)
     int test;
     for(current_line=0, test=-1; current_line<line_count; current_line++)
     {
-								if (arguments.debug != 0) {
-												printf("strlen: %d\n", strlen(text_line[current_line]) );
-								}
+        if (arguments.debug != 0) {
+            printf("strlen: %d\n", strlen(text_line[current_line]) );
+        }
 
         //SEND THE DATA: TX Socket, TX Data, TX Data Size, flags, RX Socket Info (DOMAIN, IP and PORT), size of RX Address Struct)
-    				test=sendto( tx_socket_fd, 
+        test=sendto( tx_socket_fd, 
                      text_line[current_line],             \
                      strlen(text_line[current_line]),     \
-                     0,                                  \
-                     (struct sockaddr *) &tx_to_address, \
-                     sizeof(tx_to_address)                   );
+                     0,                                   \
+                     (struct sockaddr *) &tx_to_address,  \
+                     sizeof(tx_to_address)                );
 
-    				if ( test < 0) printf("Failed to send line(%d).\n", current_line);
+        if ( test < 0) printf("Failed to send line(%d).\n", current_line);
     }
-  
     
     for(current_line=0; current_line<line_count; current_line++)
     {
-    				free(text_line[current_line]);
+        free(text_line[current_line]);
     }
     
   
