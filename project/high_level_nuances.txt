@@ -13,18 +13,24 @@ State1: Server awaits a connection request and init packet.
 
 State2: Client sends init packet to Server:
     file_id[16]: {yy[8]+mm[4]+dd[5] , ss[6]} = {date[10],ss[6]}  per file transfer.
-    lines[16]:    number of text lines to be transmitted.
+    lines[16]:    number of text lines to be transmitted (so the server know how much space to allocate)
     payload_size[16]:current payload size.
-
-    tx_ordered[1]:
+    tx_ordered[1]: client requests a tx method but upto server to decide which one it prefers.
         1-send burst of packets each packet containing a single line; 
         0-wait for acks from Servers used by server to request a line.
-
     reserved[15]
     payload: full path to file as the payload.
 
 State3: Server received the init packet:
     Server registers file_id
     Server registers tx_ordered (only tx_ordered 0 is implemented for now)
-    Server responds with the same packet 
+    Servers tries to allocate memory (if unsucc; respond with abort; lines[16]=0)
+    Server checks the desired destination using init packet's payload info (if directory d.n. exist or fail to open a file in general, respond with abort; lines[16]=0)
+    Server responds with the same packet used as an ack  (setting the lines[16] value to 0 to indicate an abort)
+
+State4: Client receives the ack packet 
+    Checks the file_id to determine to what file transfer the ack corresponds.
+    Client checks the tx_ordered to see if Server agreeed to use the desired method or insists on Server's method.
+    Client sends a burst of packets, or sends one packet/line at the time looking for Server to ack each delivery with response (response same as State3 packet but lines=<num of next line to be send by client>)
+    
     
