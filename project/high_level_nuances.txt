@@ -1,14 +1,30 @@
 Client needs to:
   Get file's source /<path>/<filename>
   Get file's destination /<path>/<filename>
-  Create "file name" tag per file transfer.
+  Create file_id (24-bit id=yy[8],mm[4],dd[5],ss[6],us[1]) per file transfer.
+  
 
 Initiation Header needs to have:
   file name tag,
   destination /<path>/<filename>
   number of text lines to transfer for current file
 
+State1: Server awaits a connection request and init packet.
 
-  
+State2: Client sends init packet to Server:
+    file_id[16]: {yy[8]+mm[4]+dd[5] , ss[6]} = {date[10],ss[6]}  per file transfer.
+    lines[16]:    number of text lines to be transmitted.
+    payload_size[16]:current payload size.
 
+    tx_ordered[1]:
+        1-send burst of packets each packet containing a single line; 
+        0-wait for acks from Servers used by server to request a line.
 
+    reserved[15]
+    payload: full path to file as the payload.
+
+State3: Server received the init packet:
+    Server registers file_id
+    Server registers tx_ordered (only tx_ordered 0 is implemented for now)
+    Server responds with the same packet 
+    

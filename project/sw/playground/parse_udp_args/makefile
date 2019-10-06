@@ -16,7 +16,7 @@ all: non_debug
 alldebug: debug
 
 debug:
-	$(CC) $(CC_DEBUG_OPTIONS) $(SRC) readfile.h -o $(TARGET)
+	$(CC) $(CC_DEBUG_OPTIONS) $(SRC) -o $(TARGET)
 
 
 non_debug:

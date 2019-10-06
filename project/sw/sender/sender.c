@@ -7,12 +7,12 @@
  */
 
 #include <stdio.h>
-#include "../parse_udp_args/parse_args.h"
+#include "../source/parse_args.h"
 #include <arpa/inet.h>  //inet_aton
 #include <netinet/in.h> //sockaddr_in
 //#include "../source/func.h"
-#include "../read_file_linebyline/readfile.h"
-#include "../packet_id/packet_id.h"
+#include "../source/readfile.h"
+#include "../source/packet_id.h"
 
 #define MAX_NUM_OF_FILES 10
 

@@ -16,7 +16,7 @@ all: non_debug
 alldebug: debug
 
 debug:
-	$(CC) $(CC_DEBUG_OPTIONS) $(SRC) ./packet_id.h -o $(TARGET)
+	$(CC) $(CC_DEBUG_OPTIONS) $(SRC) -o $(TARGET)
 	#$(CC) $(CC_DEBUG_OPTIONS) $(SRC) ../parse_udp_args/parse_args.h -o $(TARGET)
 
 

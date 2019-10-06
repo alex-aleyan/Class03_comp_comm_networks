@@ -2,7 +2,7 @@
 CC=gcc
 CC_OPTIONS=-v -Wall -W -D_GNU_SOURCE
 CC_DEBUG_OPTIONS=-v -g --save-temps -Wall -W -D_GNU_SOURCE -W -DGETPROTOBYNUMBER
-PROG_NAME=argp
+PROG_NAME=main
 TARGET=$(PROG_NAME).run
 SRC=$(PROG_NAME).c
 
@@ -16,7 +16,7 @@ all: non_debug
 alldebug: debug
 
 debug:
-	$(CC) $(CC_DEBUG_OPTIONS) $(SRC) -o $(TARGET)
+	$(CC) $(CC_DEBUG_OPTIONS) $(SRC) ../source/readfile.h -o $(TARGET)
 
 
 non_debug:
