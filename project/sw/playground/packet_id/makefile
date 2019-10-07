@@ -1,7 +1,7 @@
 #use this compiler:
 CC=gcc
 CC_OPTIONS=-v -Wall -W -D_GNU_SOURCE
-CC_DEBUG_OPTIONS=-v -g --save-temps -Wall -W -D_GNU_SOURCE -W -DGETPROTOBYNUMBER
+CC_DEBUG_OPTIONS=-v -g --save-temps -Wall -W -DDEBUG -D_GNU_SOURCE -W -DGETPROTOBYNUMBER
 PROG_NAME=main
 TARGET=$(PROG_NAME).run
 SRC=$(PROG_NAME).c

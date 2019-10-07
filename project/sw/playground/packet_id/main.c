@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 #include "../../source/packet_id.h"
-
+#define DEBUG 1
 int main (void)
 {
 

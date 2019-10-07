@@ -32,5 +32,12 @@ State4: Client receives the ack packet
     Checks the file_id to determine to what file transfer the ack corresponds.
     Client checks the tx_ordered to see if Server agreeed to use the desired method or insists on Server's method.
     Client sends a burst of packets, or sends one packet/line at the time looking for Server to ack each delivery with response (response same as State3 packet but lines=<num of next line to be send by client>)
+    The packets sent by client from this point use fields in this manner:
+        file_id: stays the same
+        lines: indicate a line number the payload contains.
+        payload_size: as before.
+        tx_ordered: don't care
+        reserved: don't care
+        payload: actual content of the line. 
     
     

@@ -66,7 +66,8 @@ int packet_id (void)
     printf("file_id_ymd_var=0x%04x\n\n", file_id_ymd_var);
 #endif
  
-    uint16_t file_id_var = ( (my_time.year + my_time.month + my_time.day) << 6 ) | file_id_sec_var.sec ;
+//    uint16_t file_id_var = ( (my_time.year + my_time.month + my_time.day) << 6 ) | file_id_sec_var.sec ;
+    uint16_t file_id_var = ( (my_time.year + my_time.month + my_time.day) << 6+5+6 ) | (*tm).tm_hour << 5+6 | (*tm).tm_min << 6 | file_id_sec_var.sec ;
 
     printf("file_id_var=0x%d\n", file_id_var);
     printf("file_id_var=0x%04x\n\n", file_id_var);

@@ -27,7 +27,7 @@ printf("\|DEC:\n");
 		while (i < n)
 		{   
 				printf("\|byte[%d]: \|\t",i);
-				printf("\|%02X \|\t",(unsigned)byte_array[i]);
+				printf("\|0x%02X \|\t",(unsigned)byte_array[i]);
 				printf("\|%c \|\t",(unsigned)byte_array[i]);
 				printf("\|%d\n",(unsigned)byte_array[i]);
 				i++;

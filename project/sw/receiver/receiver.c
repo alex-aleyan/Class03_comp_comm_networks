@@ -11,6 +11,7 @@
 #include <arpa/inet.h>  //inet_aton
 #include <netinet/in.h> //sockaddr_in
 #include "../source/func.h"
+#include "../source/headers.h"
 
 
 int main (int argc, char **argv)
@@ -124,13 +125,16 @@ int main (int argc, char **argv)
         receiveDgramBuffer[current_line][test] = '\0'; //NULL terminate the received string
         
         if (arguments.debug != 0){
-            printf("RECEIVED DGRAM:\"%s\"", receiveDgramBuffer[current_line]);
+            //printf("RECEIVED DGRAM:\"%s\"", receiveDgramBuffer[current_line]);
+            //printf("RECEIVED FROM:\"%s\":%u\n\n", inet_ntoa(rx_from_address.sin_addr), (unsigned) ntohs(rx_from_address.sin_port));
+            printf("RECEIVED DGRAM:\"%s\"", receiveDgramBuffer[current_line]+sizeof(file_x_app_layer_t));
             printf("RECEIVED FROM:\"%s\":%u\n\n", inet_ntoa(rx_from_address.sin_addr), (unsigned) ntohs(rx_from_address.sin_port));
         }
     }
     
     if (arguments.verbose != 0)
-    for(current_line=0;current_line<MAX_NUM_OF_TEXT_LINES_PER_FILE;current_line++)  printf("%s", receiveDgramBuffer[current_line]);
+    for(current_line=0;current_line<MAX_NUM_OF_TEXT_LINES_PER_FILE;current_line++)  printf("%s", receiveDgramBuffer[current_line]+sizeof(file_x_app_layer_t));
+    //for(current_line=0;current_line<MAX_NUM_OF_TEXT_LINES_PER_FILE;current_line++)  printf("%s", receiveDgramBuffer[current_line]);
     
     shutdown(rx_socket_fd, SHUT_RDWR);
     
