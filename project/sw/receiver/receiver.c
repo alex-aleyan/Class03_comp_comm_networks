@@ -103,9 +103,35 @@ int main (int argc, char **argv)
     
     char receiveDgramBuffer[MAX_NUM_OF_TEXT_LINES_PER_FILE][512]; // Receive Buffer
     
+        int txSockLen = sizeof(rx_from_address);
+        test = recvfrom( rx_socket_fd,                         \
+                         receiveDgramBuffer[0],     \
+                         sizeof(receiveDgramBuffer[0]),           \
+                         0,                                    \
+                         (struct sockaddr *) &rx_from_address, \
+                         &txSockLen                            );
+
+        char * app_header_n_data;
+        app_header_n_data=malloc(test );
+        char * init_data;
+        init_data=malloc( test - sizeof(file_x_app_layer_t) + 1);
+        //memcpy(app_header_n_data, receiveDgramBuffer[0] , sizeof(file_x_app_layer_t) );
+        memcpy(app_header_n_data, receiveDgramBuffer[0], test );
+        memcpy(init_data, receiveDgramBuffer[0]+sizeof(file_x_app_layer_t), test-sizeof(file_x_app_layer_t) );
+        *(init_data+test - sizeof(file_x_app_layer_t)) = NULL;
+        file_x_app_layer_t * app_layer = (file_x_app_layer_t *) app_header_n_data;
+
+        printf("TEXT LINES: %d\n\n", (*app_layer).text_lines);
+        printf("INIT_DATA: %s\n\n", init_data);
+
+        printBytes(app_header_n_data, test);
+
     int current_line;
-    int txSockLen = sizeof(rx_from_address);
-    for(current_line=0;current_line<MAX_NUM_OF_TEXT_LINES_PER_FILE;current_line++)
+    int total_lines=(*app_layer).text_lines;
+//    int txSockLen = sizeof(rx_from_address);
+    //for(current_line=0;current_line<MAX_NUM_OF_TEXT_LINES_PER_FILE;current_line++)
+    //for(current_line=0;current_line<(*app_layer).text_lines;current_line++)
+    for(current_line=0;current_line<total_lines;current_line++)
     {
         //Receive a line of text:
         test = recvfrom( rx_socket_fd,                         \
@@ -115,14 +141,16 @@ int main (int argc, char **argv)
                          (struct sockaddr *) &rx_from_address, \
                          &txSockLen                            );
 
+        app_layer = receiveDgramBuffer[current_line];
         //test = read( rx_socket_fd,                     \
         //                          receiveDgramBuffer[current_line], \
         //                          sizeof(receiveDgramBuffer)        );
         
-        if ( test < 0) bail("recvfrom(2)");
+        if ( test < 0) bail("recvfrom(2)"); else  printf("GOT %d BYTES\n", test);
+        printBytes(receiveDgramBuffer[current_line], test);
         
         // Terminate the received string with Null (maybe it's a good idea to also check the received string to make sure no nulls are present?!):
-        receiveDgramBuffer[current_line][test] = '\0'; //NULL terminate the received string
+        receiveDgramBuffer[current_line][test] = '\n'; //NULL terminate the received string
         
         if (arguments.debug != 0){
             //printf("RECEIVED DGRAM:\"%s\"", receiveDgramBuffer[current_line]);
@@ -133,7 +161,7 @@ int main (int argc, char **argv)
     }
     
     if (arguments.verbose != 0)
-    for(current_line=0;current_line<MAX_NUM_OF_TEXT_LINES_PER_FILE;current_line++)  printf("%s", receiveDgramBuffer[current_line]+sizeof(file_x_app_layer_t));
+    for(current_line=0;current_line<total_lines;current_line++)  printf("%s", receiveDgramBuffer[current_line]+sizeof(file_x_app_layer_t));
     //for(current_line=0;current_line<MAX_NUM_OF_TEXT_LINES_PER_FILE;current_line++)  printf("%s", receiveDgramBuffer[current_line]);
     
     shutdown(rx_socket_fd, SHUT_RDWR);
@@ -141,12 +169,13 @@ int main (int argc, char **argv)
     //##################### OPEN FILE STARTS HERE: ##########################
     
     FILE *fd = NULL;
-    if ( (fd=fopen(arguments.outfile,"w")) == NULL ) {
+    //if ( (fd=fopen(arguments.outfile,"w")) == NULL ) {
+    if ( (fd=fopen(init_data,"w")) == NULL ) {
         printf(stderr, "Unable to open file %s; Use --input-file option, and make sure the file is present.\n", arguments.outfile); 
         return -1; }
     else  {
         fflush(fd);
-        for(current_line=0;current_line<MAX_NUM_OF_TEXT_LINES_PER_FILE;current_line++) fputs(receiveDgramBuffer[current_line], fd);
+        for(current_line=0;current_line<total_lines;current_line++) fputs(receiveDgramBuffer[current_line]+sizeof(file_x_app_layer_t), fd);
         fclose(fd);
     }  
     
