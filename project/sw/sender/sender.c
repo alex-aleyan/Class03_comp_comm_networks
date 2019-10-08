@@ -122,29 +122,25 @@ int main (int argc, char **argv)
   
     for(current_line=0; current_line<line_count; current_line++) printf("%s",text_line[current_line]);
   
+
+    //
     file_x_app_layer_t * app_layer;
     app_layer = malloc( sizeof(file_x_app_layer_t) );
     (*app_layer).file_id = packet_id();
     (*app_layer).text_lines = line_count;
+    (*app_layer).server_ack = 0;
+    (*app_layer).reserved = 0;
+    (*app_layer).tx_burst = 1;
 
+    //##### INIT BEGIN:
 
-    //##### Send init
-
-    //char * dest_file_name_ptr = malloc( sizeof(file_x_app_layer_t) + strlen(arguments.outfile) + 1 );
-    //memcpy(dest_file_name_ptr, app_layer , sizeof(file_x_app_layer_t) );
-    //memcpy(dest_file_name_ptr+sizeof(file_x_app_layer_t), arguments.outfile, strlen(arguments.outfile)+1);
-    //*(dest_file_name_ptr + strlen(arguments.outfile)) = '\0';
-
-    char * dest_file_name_ptr = malloc( sizeof(file_x_app_layer_t) + strlen(arguments.outfile));
-    memcpy(dest_file_name_ptr, app_layer , sizeof(file_x_app_layer_t) );
-    memcpy(dest_file_name_ptr+sizeof(file_x_app_layer_t), arguments.outfile, strlen(arguments.outfile) );
-
-    (*app_layer).text_lines = line_count;
     (*app_layer).payload_size = strlen(arguments.outfile);
     (*app_layer).tx_burst = 1;
     (*app_layer).server_ack = 0;
     (*app_layer).reserved = 0;
 
+
+    //print the applicatin header:
     printf("\n\napp_layer: 0x%08x\n",(*app_layer));
     printf("app_layer.file_id: %d\n",(*app_layer).file_id);
     printf("(*app_layer).text_line: %d\n",(*app_layer).text_lines);
@@ -153,24 +149,28 @@ int main (int argc, char **argv)
     printf("(*app_layer).server_ack: %d\n",(*app_layer).server_ack);
     printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
 
-    printBytes(dest_file_name_ptr, sizeof(file_x_app_layer_t) + strlen(arguments.outfile));
-
-//    printf("\n\nINIT PAYLOAD: %s, strlen=%d\n",dest_file_name_ptr, strlen(arguments.outfile) );
-//    printf("NULL: %02x %02x \n", NULL, '\0');
-
     int test;
-    //SEND THE DATA: TX Socket, TX Data, TX Data Size, flags, RX Socket Info (DOMAIN, IP and PORT), size of RX Address Struct)
-    test=sendto( tx_socket_fd, \
-                 dest_file_name_ptr,             \
-                 sizeof(file_x_app_layer_t)+strlen(arguments.outfile),     \
-                 0,                                   \
-                 (struct sockaddr *) &tx_to_address,  \
-                 sizeof(tx_to_address)                );
 
+    //Allocate memory to store the header+data
+    char * dest_file_name_ptr = malloc( sizeof(file_x_app_layer_t) + strlen(arguments.outfile));
+    memcpy(dest_file_name_ptr, app_layer , sizeof(file_x_app_layer_t) );
+    memcpy(dest_file_name_ptr+sizeof(file_x_app_layer_t), arguments.outfile, strlen(arguments.outfile) );
+
+    //printBytes(dest_file_name_ptr, sizeof(file_x_app_layer_t) + strlen(arguments.outfile));
+    //printf("\n\nINIT PAYLOAD: %s, strlen=%d\n",dest_file_name_ptr, strlen(arguments.outfile) );
+    //printf("NULL: %02x %02x \n", NULL, '\0');
+
+    //Send the init packet:
+    test=sendto( tx_socket_fd,                                         \
+                 dest_file_name_ptr,                                   \
+                 sizeof(file_x_app_layer_t)+strlen(arguments.outfile), \
+                 0,                                                    \
+                 (struct sockaddr *) &tx_to_address,                   \
+                 sizeof(tx_to_address)                                 );
     if ( test < 0) printf("Failed to send line.\n");
 
+    //##### INIT END
 
-    //#####
 
     //Send data:
 //    int test;
