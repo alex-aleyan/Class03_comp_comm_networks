@@ -152,14 +152,15 @@ int main (int argc, char **argv)
     int test;
 
     //Allocate memory to store the header+data
-    char * dest_file_name_ptr = malloc( sizeof(file_x_app_layer_t) + strlen(arguments.outfile));
-    memcpy(dest_file_name_ptr, app_layer , sizeof(file_x_app_layer_t) );
-    memcpy(dest_file_name_ptr+sizeof(file_x_app_layer_t), arguments.outfile, strlen(arguments.outfile) );
+    //char * dest_file_name_ptr = malloc( sizeof(file_x_app_layer_t) + strlen(arguments.outfile));
+    //memcpy(dest_file_name_ptr, app_layer , sizeof(file_x_app_layer_t) );
+    //memcpy(dest_file_name_ptr+sizeof(file_x_app_layer_t), arguments.outfile, strlen(arguments.outfile) );
+    char * dest_file_name_ptr = concat_bytes(app_layer, sizeof(file_x_app_layer_t), arguments.outfile, strlen(arguments.outfile));
 
-    //printBytes(dest_file_name_ptr, sizeof(file_x_app_layer_t) + strlen(arguments.outfile));
-    //printf("\n\nINIT PAYLOAD: %s, strlen=%d\n",dest_file_name_ptr, strlen(arguments.outfile) );
+    printBytes(dest_file_name_ptr, sizeof(file_x_app_layer_t) + strlen(arguments.outfile));
+    printf("\n\nINIT PAYLOAD: %s, strlen=%d\n",dest_file_name_ptr+sizeof(file_x_app_layer_t), strlen(arguments.outfile) );
     //printf("NULL: %02x %02x \n", NULL, '\0');
-
+    
     //Send the init packet:
     test=sendto( tx_socket_fd,                                         \
                  dest_file_name_ptr,                                   \
@@ -193,11 +194,12 @@ int main (int argc, char **argv)
         printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
         
 
-        app_header_n_data=malloc( sizeof(file_x_app_layer_t) + strlen(text_line[current_line]) );
-        memcpy(app_header_n_data, app_layer , sizeof(file_x_app_layer_t) );
-        memcpy(app_header_n_data+(sizeof(file_x_app_layer_t)), text_line[current_line], strlen(text_line[current_line])-1 );
+        //app_header_n_data=malloc( sizeof(file_x_app_layer_t) + strlen(text_line[current_line]) );
+        //memcpy(app_header_n_data, app_layer , sizeof(file_x_app_layer_t) );
+        //memcpy(app_header_n_data+(sizeof(file_x_app_layer_t)), text_line[current_line], strlen(text_line[current_line])-1 );
+        app_header_n_data = concat_bytes(app_layer, sizeof(file_x_app_layer_t), text_line[current_line], strlen(text_line[current_line])-1 );
+        
         printBytes(app_header_n_data, sizeof(file_x_app_layer_t) + strlen(text_line[current_line]) -1);
-
 
         //SEND THE DATA: TX Socket, TX Data, TX Data Size, flags, RX Socket Info (DOMAIN, IP and PORT), size of RX Address Struct)
         test=sendto( tx_socket_fd, 

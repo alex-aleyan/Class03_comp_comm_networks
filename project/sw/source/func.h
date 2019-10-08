@@ -217,3 +217,12 @@ int printHostByName(char *hostName){
 		return 0;
 
 }
+
+
+char * concat_bytes (char * app_header, int app_header_size, char * data, int data_size)
+{
+    char * dest_file_name_ptr = malloc(app_header_size + data_size);
+    memcpy(dest_file_name_ptr, app_header , app_header_size );
+    memcpy(dest_file_name_ptr+app_header_size, data, data_size );
+    return dest_file_name_ptr;
+}

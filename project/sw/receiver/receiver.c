@@ -102,7 +102,10 @@ int main (int argc, char **argv)
     //system("netstat -neopa | grep dgram ");
     
     char receiveDgramBuffer[MAX_NUM_OF_TEXT_LINES_PER_FILE][512]; // Receive Buffer
+    char receive_buffer[512]; // Receive Buffer
     
+    //### Receieve INIT PAKET begin:
+    //
         int txSockLen = sizeof(rx_from_address);
         test = recvfrom( rx_socket_fd,                         \
                          receiveDgramBuffer[0],     \
@@ -121,10 +124,20 @@ int main (int argc, char **argv)
         *(init_data+test - sizeof(file_x_app_layer_t)) = NULL;
         file_x_app_layer_t * app_layer = (file_x_app_layer_t *) app_header_n_data;
 
-        printf("TEXT LINES: %d\n\n", (*app_layer).text_lines);
+        printf("\nTEXT LINES: %d\n", (*app_layer).text_lines);
         printf("INIT_DATA: %s\n\n", init_data);
 
-        printBytes(app_header_n_data, test);
+        //printBytes(app_header_n_data, test);
+        printf("(*app_layer): 0x%08x\n",(*app_layer));
+        printf("(*app_layer).file_id: %d\n",(*app_layer).file_id);
+        printf("(*app_layer).text_line: %d\n",(*app_layer).text_lines);
+        printf("(*app_layer).payload_size: %d\n",(*app_layer).payload_size);
+        printf("(*app_layer).tx_burst: %d\n",(*app_layer).tx_burst);
+        printf("(*app_layer).server_ack: %d\n",(*app_layer).server_ack);
+        printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
+
+    //### Receieve INIT PAKET end
+
 
     int current_line;
     int total_lines=(*app_layer).text_lines;
@@ -168,15 +181,16 @@ int main (int argc, char **argv)
     
     //##################### OPEN FILE STARTS HERE: ##########################
     
-    FILE *fd = NULL;
-    //if ( (fd=fopen(arguments.outfile,"w")) == NULL ) {
-    if ( (fd=fopen(init_data,"w")) == NULL ) {
+    FILE *outfile_fd = NULL;
+    if ( (outfile_fd=fopen(init_data,"w")) == NULL ) {
         printf(stderr, "Unable to open file %s; Use --input-file option, and make sure the file is present.\n", arguments.outfile); 
         return -1; }
     else  {
-        fflush(fd);
-        for(current_line=0;current_line<total_lines;current_line++) fputs(receiveDgramBuffer[current_line]+sizeof(file_x_app_layer_t), fd);
-        fclose(fd);
+        fflush(outfile_fd);
+        for(current_line=0;current_line<total_lines;current_line++) 
+            fputs(receiveDgramBuffer[current_line]+sizeof(file_x_app_layer_t), outfile_fd);
+            
+        fclose(outfile_fd);
     }  
     
     
