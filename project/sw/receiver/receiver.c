@@ -115,14 +115,24 @@ int main (int argc, char **argv)
                          &txSockLen                            );
 
         char * app_header_n_data;
-        app_header_n_data=malloc(test );
-        char * init_data;
-        init_data=malloc( test - sizeof(file_x_app_layer_t) + 1);
-        //memcpy(app_header_n_data, receiveDgramBuffer[0] , sizeof(file_x_app_layer_t) );
+        //Allocate the memory to store the application header and the data following the application header:
+        app_header_n_data=malloc(test);
+        //Copy the header and the data to the allocated memory:
         memcpy(app_header_n_data, receiveDgramBuffer[0], test );
-        memcpy(init_data, receiveDgramBuffer[0]+sizeof(file_x_app_layer_t), test-sizeof(file_x_app_layer_t) );
-        *(init_data+test - sizeof(file_x_app_layer_t)) = NULL;
+
+        // Get the Application Layer Header:
         file_x_app_layer_t * app_layer = (file_x_app_layer_t *) app_header_n_data;
+
+        //Get the Data following the Application Layer header:
+        char * init_data;
+        //Allocate the memory to store the data:
+        init_data=malloc( test - sizeof(file_x_app_layer_t) + 1);
+        //Copy the data from the buffer to the allocated memory:
+        memcpy(init_data, receiveDgramBuffer[0]+sizeof(file_x_app_layer_t), test-sizeof(file_x_app_layer_t) );
+        //Terminate the string with null:
+        *(init_data+test - sizeof(file_x_app_layer_t)) = NULL;
+
+
 
         printf("\nTEXT LINES: %d\n", (*app_layer).text_lines);
         printf("INIT_DATA: %s\n\n", init_data);
@@ -154,13 +164,10 @@ int main (int argc, char **argv)
                          (struct sockaddr *) &rx_from_address, \
                          &txSockLen                            );
 
-        app_layer = receiveDgramBuffer[current_line];
-        //test = read( rx_socket_fd,                     \
-        //                          receiveDgramBuffer[current_line], \
-        //                          sizeof(receiveDgramBuffer)        );
-        
         if ( test < 0) bail("recvfrom(2)"); else  printf("GOT %d BYTES\n", test);
         printBytes(receiveDgramBuffer[current_line], test);
+
+        app_layer = receiveDgramBuffer[current_line];
         
         // Terminate the received string with Null (maybe it's a good idea to also check the received string to make sure no nulls are present?!):
         receiveDgramBuffer[current_line][test] = '\n'; //NULL terminate the received string
