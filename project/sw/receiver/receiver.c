@@ -13,10 +13,21 @@
 #include "../source/func.h"
 #include "../source/headers.h"
 
+#define MAX_NUM_OF_LINES 20
+
+//received_lines_record
+typedef struct received_lines_records {
+    unsigned int mask : MAX_NUM_OF_LINES;
+} received_lines_records_t;
 
 
 int main (int argc, char **argv)
 {
+    received_lines_records_t received_lines_record ;
+    received_lines_record.mask = 0;
+    received_lines_records_t expected_lines_record ;
+    expected_lines_record.mask = 0;
+
     struct arguments arguments;
     
     //argument defaults:
@@ -135,7 +146,14 @@ int main (int argc, char **argv)
 
     int current_line;
     int total_lines=(*app_layer).text_lines;
-    for(current_line=0;current_line<total_lines;current_line++)
+
+    //Each bit in the mask corresponds to received line.
+    //If the nth bit is unset, the nth line is not expected to be received.
+    //If the nth bit is set, the nth line is expected to be received.
+    //For example, if trasnfer is to copy 5 lines, bits 0th thru 4th will be set, and rest unset.
+    for(current_line=0;current_line<total_lines;current_line++)  expected_lines_record.mask = expected_lines_record.mask | (1<<current_line);
+
+    while (received_lines_record.mask != expected_lines_record.mask)
     {
         //Receive a line of text:
         test = recvfrom( rx_socket_fd,                         \
@@ -150,7 +168,12 @@ int main (int argc, char **argv)
 
         app_layer = receiveDgramBuffer;
         
-        //if  ( (received_lines_record << (*app_layer).text_line) != 0) continue; 
+        if  ( (received_lines_record.mask & (1 << (*app_layer).text_lines)) ) ; // continue;
+ 
+        received_lines_record.mask =  ( received_lines_record.mask | (1 << (*app_layer).text_lines) );
+        printf("mask=0x%04x\n", received_lines_record.mask);
+
+        //received_lines_record.mask = 0;
 
         // Terminate the received string with Null (maybe it's a good idea to also check the received string to make sure no nulls are present?!):
         //receiveDgramBuffer[test] = '\n'; //NULL terminate the received string
