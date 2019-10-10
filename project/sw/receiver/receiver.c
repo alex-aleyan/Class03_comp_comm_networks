@@ -14,11 +14,12 @@
 #include "../source/headers.h"
 
 
+
 int main (int argc, char **argv)
 {
     struct arguments arguments;
     
-    /* Set argument defaults */
+    //argument defaults:
     arguments.outfile = NULL;
     arguments.infile = NULL;
     arguments.source_ip   = "";
@@ -28,13 +29,8 @@ int main (int argc, char **argv)
     arguments.verbose = 0;
     arguments.debug   = 0;
     
-    /* Where the magic happens */
+    //Parse the options:
     argp_parse (&argp, argc, argv, 0, 0, &arguments);
-    
-    //Set the output stream:
-    //FILE *outstream;
-    //if (arguments.outfile) outstream = fopen (arguments.outfile, "w");
-    //else                   outstream = stdout;
     
     if (arguments.verbose != 0){ 
         printf ( "\n");
@@ -64,8 +60,7 @@ int main (int argc, char **argv)
     
     //##################### UDP RECEIVER STARTS HERE:
     
-    // NOTE: Retrieve this info from the initial pocket!
-    #define MAX_NUM_OF_TEXT_LINES_PER_FILE 10
+    #define MAX_CHARS_PER_LINE 512
     
     int test;
     struct sockaddr_in rx_local_address; // AF_INET
@@ -101,43 +96,76 @@ int main (int argc, char **argv)
     //system("netstat -neopa | grep Recv-Q ");
     //system("netstat -neopa | grep dgram ");
     
-    char receiveDgramBuffer[MAX_NUM_OF_TEXT_LINES_PER_FILE][512]; // Receive Buffer
-    char receive_buffer[512]; // Receive Buffer
+    char receiveDgramBuffer[MAX_CHARS_PER_LINE]; // Receive Buffer
     
-    //### Receieve INIT PAKET begin:
-    //
-        int txSockLen = sizeof(rx_from_address);
+    //Receieve INIT PAKET begin:
+
+    int txSockLen = sizeof(rx_from_address);
+    test = recvfrom( rx_socket_fd,                         \
+                     receiveDgramBuffer,                   \
+                     sizeof(receiveDgramBuffer),           \
+                     0,                                    \
+                     (struct sockaddr *) &rx_from_address, \
+                     &txSockLen                            );
+
+    //Allocate the memory to store: the application header + the data following the application header + 1 byte for NULL:
+    file_x_app_layer_t * app_layer = (file_x_app_layer_t *) malloc(test + 1);
+    //Copy the header and the data to the allocated memory:
+    memcpy(app_layer, receiveDgramBuffer, test);
+    //Get the data part of the packet containing the file name::
+    char * init_data = (char *)  ( ((char *) app_layer) + sizeof(file_x_app_layer_t) );
+    //Terminate the string with null:
+    *(init_data + test - sizeof(file_x_app_layer_t)) = NULL;
+    
+
+    printf("\nTEXT LINES: %d\n", (*app_layer).text_lines);
+    printf("INIT_DATA: %s\n\n", init_data);
+
+    //printBytes(app_header_n_data, test);
+    printf("(*app_layer): 0x%08x\n",(*app_layer));
+    printf("(*app_layer).file_id: %d\n",(*app_layer).file_id);
+    printf("(*app_layer).text_line: %d\n",(*app_layer).text_lines);
+    printf("(*app_layer).payload_size: %d\n",(*app_layer).payload_size);
+    printf("(*app_layer).tx_burst: %d\n",(*app_layer).tx_burst);
+    printf("(*app_layer).server_ack: %d\n",(*app_layer).server_ack);
+    printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
+
+
+    char * packet_data [(*app_layer).text_lines] ;
+
+    int current_line;
+    int total_lines=(*app_layer).text_lines;
+    for(current_line=0;current_line<total_lines;current_line++)
+    {
+        //Receive a line of text:
         test = recvfrom( rx_socket_fd,                         \
-                         receiveDgramBuffer[0],     \
-                         sizeof(receiveDgramBuffer[0]),           \
+                         receiveDgramBuffer,                   \
+                         sizeof(receiveDgramBuffer),           \
                          0,                                    \
                          (struct sockaddr *) &rx_from_address, \
                          &txSockLen                            );
 
-        char * app_header_n_data;
+        if ( test < 0) bail("recvfrom(2)"); else  printf("GOT %d BYTES\n", test);
+        printBytes(receiveDgramBuffer, test);
+
+        app_layer = receiveDgramBuffer;
+        
+        //if  ( (received_lines_record << (*app_layer).text_line) != 0) continue; 
+
+        // Terminate the received string with Null (maybe it's a good idea to also check the received string to make sure no nulls are present?!):
+        //receiveDgramBuffer[test] = '\n'; //NULL terminate the received string
+        
         //Allocate the memory to store the application header and the data following the application header:
-        app_header_n_data=malloc(test);
+        app_layer = (file_x_app_layer_t *) malloc(test + 2);
         //Copy the header and the data to the allocated memory:
-        memcpy(app_header_n_data, receiveDgramBuffer[0], test );
-
-        // Get the Application Layer Header:
-        file_x_app_layer_t * app_layer = (file_x_app_layer_t *) app_header_n_data;
-
-        //Get the Data following the Application Layer header:
-        char * init_data;
-        //Allocate the memory to store the data:
-        init_data=malloc( test - sizeof(file_x_app_layer_t) + 1);
-        //Copy the data from the buffer to the allocated memory:
-        memcpy(init_data, receiveDgramBuffer[0]+sizeof(file_x_app_layer_t), test-sizeof(file_x_app_layer_t) );
-        //Terminate the string with null:
-        *(init_data+test - sizeof(file_x_app_layer_t)) = NULL;
+        memcpy(app_layer, receiveDgramBuffer, test);
+        //Get the data part of the packet containing the file name::
+        (packet_data[(*app_layer).text_lines]) = (char *)  ( ((char *) app_layer) + sizeof(file_x_app_layer_t) );
+        //Append the new line and terminate the string with null:
+        *(packet_data[(*app_layer).text_lines] + test - sizeof(file_x_app_layer_t)    ) = '\n';
+        *(packet_data[(*app_layer).text_lines] + test - sizeof(file_x_app_layer_t) + 1) = NULL;
 
 
-
-        printf("\nTEXT LINES: %d\n", (*app_layer).text_lines);
-        printf("INIT_DATA: %s\n\n", init_data);
-
-        //printBytes(app_header_n_data, test);
         printf("(*app_layer): 0x%08x\n",(*app_layer));
         printf("(*app_layer).file_id: %d\n",(*app_layer).file_id);
         printf("(*app_layer).text_line: %d\n",(*app_layer).text_lines);
@@ -146,47 +174,19 @@ int main (int argc, char **argv)
         printf("(*app_layer).server_ack: %d\n",(*app_layer).server_ack);
         printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
 
-    //### Receieve INIT PAKET end
-
-
-    int current_line;
-    int total_lines=(*app_layer).text_lines;
-//    int txSockLen = sizeof(rx_from_address);
-    //for(current_line=0;current_line<MAX_NUM_OF_TEXT_LINES_PER_FILE;current_line++)
-    //for(current_line=0;current_line<(*app_layer).text_lines;current_line++)
-    for(current_line=0;current_line<total_lines;current_line++)
-    {
-        //Receive a line of text:
-        test = recvfrom( rx_socket_fd,                         \
-                         receiveDgramBuffer[current_line],     \
-                         sizeof(receiveDgramBuffer),           \
-                         0,                                    \
-                         (struct sockaddr *) &rx_from_address, \
-                         &txSockLen                            );
-
-        if ( test < 0) bail("recvfrom(2)"); else  printf("GOT %d BYTES\n", test);
-        printBytes(receiveDgramBuffer[current_line], test);
-
-        app_layer = receiveDgramBuffer[current_line];
-        
-        // Terminate the received string with Null (maybe it's a good idea to also check the received string to make sure no nulls are present?!):
-        receiveDgramBuffer[current_line][test] = '\n'; //NULL terminate the received string
-        
         if (arguments.debug != 0){
-            //printf("RECEIVED DGRAM:\"%s\"", receiveDgramBuffer[current_line]);
-            //printf("RECEIVED FROM:\"%s\":%u\n\n", inet_ntoa(rx_from_address.sin_addr), (unsigned) ntohs(rx_from_address.sin_port));
-            printf("RECEIVED DGRAM:\"%s\"", receiveDgramBuffer[current_line]+sizeof(file_x_app_layer_t));
-            printf("RECEIVED FROM:\"%s\":%u\n\n", inet_ntoa(rx_from_address.sin_addr), (unsigned) ntohs(rx_from_address.sin_port));
+            printf("RECEIVED DGRAM:%s", packet_data[(*app_layer).text_lines]);
+            printf("RECEIVED FROM: %s:%u\n\n", inet_ntoa(rx_from_address.sin_addr), (unsigned) ntohs(rx_from_address.sin_port));
         }
+        
     }
     
     if (arguments.verbose != 0)
-    for(current_line=0;current_line<total_lines;current_line++)  printf("%s", receiveDgramBuffer[current_line]+sizeof(file_x_app_layer_t));
-    //for(current_line=0;current_line<MAX_NUM_OF_TEXT_LINES_PER_FILE;current_line++)  printf("%s", receiveDgramBuffer[current_line]);
+    for(current_line=0;current_line<total_lines;current_line++)  printf("%s", packet_data[current_line]);
     
     shutdown(rx_socket_fd, SHUT_RDWR);
     
-    //##################### OPEN FILE STARTS HERE: ##########################
+    //##################### OPEN FILE BEGIN: ##########################
     
     FILE *outfile_fd = NULL;
     if ( (outfile_fd=fopen(init_data,"w")) == NULL ) {
@@ -194,12 +194,16 @@ int main (int argc, char **argv)
         return -1; }
     else  {
         fflush(outfile_fd);
-        for(current_line=0;current_line<total_lines;current_line++) 
-            fputs(receiveDgramBuffer[current_line]+sizeof(file_x_app_layer_t), outfile_fd);
-            
+        for(current_line=0;current_line<total_lines;current_line++) fputs(packet_data[current_line], outfile_fd);
         fclose(outfile_fd);
     }  
-    
+
+    //##################### OPEN FILE END: ##########################
+ 
+    for(current_line=0; current_line<total_lines; current_line++)
+    {   
+       //free(packet_data[current_line]);
+    }    
     
     return 0;
 }

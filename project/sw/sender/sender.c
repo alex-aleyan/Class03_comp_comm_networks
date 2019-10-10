@@ -176,7 +176,8 @@ int main (int argc, char **argv)
     //Send data:
 //    int test;
     char *app_header_n_data;
-    for(current_line=0, test=-1; current_line<line_count; current_line++)
+//    for(current_line=0, test=-1; current_line<line_count; current_line++)
+    for(current_line=line_count-1, test=-1; current_line>=0; current_line--)
     {
 
         (*app_layer).text_lines = current_line;
