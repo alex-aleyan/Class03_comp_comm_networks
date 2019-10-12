@@ -28,13 +28,12 @@ int main (int argc, char **argv)
   
     /* Set argument defaults */
     arguments.outfile = NULL;
-    arguments.infile = NULL;
-    arguments.source_ip = "";
-    arguments.source_port = "";
+    arguments.args[0] = NULL;
     arguments.dest_ip = "";
     arguments.dest_port = "";
     arguments.verbose = 0;
     arguments.debug   = 0;
+    int arg_i = 0 ; for (arg_i=0; arg_i<10; arg_i++)  arguments.args[arg_i]=NULL;
   
     // Parse the Arguments:
     argp_parse (&argp, argc, argv, 0, 0, &arguments);
@@ -49,12 +48,14 @@ int main (int argc, char **argv)
         printf ( "These arguments received:\n");
         printf ( "  --dest-ip:    \"%s\"\n",   arguments.dest_ip);
         printf ( "  --dest-port:  \"%s\"\n", arguments.dest_port);
-        printf ( "  --input-file: \"%s\"\n\n", arguments.infile);
+        printf ( "  --input-file: \"%s\"\n\n", arguments.args[0]);
         printf ( "  --output-file: \"%s\"\n\n", arguments.outfile);
+        //int arg_i = 0 ;
+        for (arg_i=0; arg_i<10; arg_i++)  printf ( "arguments.args[%d]:%s\n", arg_i, arguments.args[arg_i]);
     }
 
     //Make sure dest ip and dest port are provided via options:
-    if (arguments.dest_ip == "" || arguments.dest_port == "" || arguments.infile == NULL || arguments.outfile == NULL) {
+    if (arguments.dest_ip == "" || arguments.dest_port == "" || arguments.args[0] == NULL || arguments.outfile == NULL) {
         fprintf(stderr, "Make sure to provide: \n\t--dest-ip\n\t--dest-port\n\t--input-file\n\t--output-file\n\nUse --help for more information.\n"); 
         return -1;
     } 
@@ -75,8 +76,8 @@ int main (int argc, char **argv)
     // Create file descriptor:
     FILE *fd = NULL;
   
-    if ((fd=fopen(arguments.infile,"r"))==NULL) {
-        fprintf(stderr, "Unable to open file:%s\nUse --input-file option, and make sure the file is present.\n", arguments.infile); 
+    if ((fd=fopen(arguments.args[0],"r"))==NULL) {
+        fprintf(stderr, "Unable to open file:%s\nUse --input-file option, and make sure the file is present.\n", arguments.args[0]); 
         return -1; 
     } 
  

@@ -18,8 +18,7 @@ struct arguments
 {
   char *args[10];            /* ARG1 and ARG2 */
   int verbose, debug;              /* The -v flag */
-  char *infile, *outfile;            /* Argument for -o */
-  char *source_ip, *source_port;
+  char *outfile;            /* Argument for -o */
   char *dest_ip,   *dest_port;  /* Arguments for -a and -b */
 };
 
@@ -35,12 +34,9 @@ static struct argp_option options[] =
 {
   {"verbose",        'v',	0              , 0, "Produce verbose output"},
   {"debug",          'x',	0              , 0, "Produce verbose output"},
-  {"source-ip",      's', "<XX.XX.XX.XX>", 0, "Provide source IP address of you NIC"},
-  {"source-port",    'p', "<XXXX>"						 , 0, "Provide source port number > 1025"},
   {"dest-ip",        'd', "<XX.XX.XX.XX>", 0, "Provide Destination IP/hostname"},
   {"dest-port",      'b', "<XXXX>"						 , 0, "Provide destination port number"},
   {"output-file",    'o', "OUTFILE"					 , 0, "Output to OUTFILE instead of to standard output"},
-  {"input-file",     'f', "INFILE"					  , 0, "Specify file name to get data from"},
   {0}
 };
 
@@ -70,14 +66,8 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
         case 'x':
             arguments->debug = 1;
             break;
-        case 's':
-            arguments->source_ip = arg;
-            break;
         case 'd':
             arguments->dest_ip = arg;
-            break;
-        case 'p':
-            arguments->source_port = arg;
             break;
         case 'b':
             arguments->dest_port = arg;
@@ -85,17 +75,14 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
         case 'o':
             arguments->outfile = arg;
             break;
-        case 'f':
-            arguments->infile = arg;
-            break;
         /*
         case ARGP_KEY_ARG:
           return 0;
         */
         case ARGP_KEY_ARG:
-            if (state->arg_num >=10) argp_usage(state);
-            break;
+            if (state->arg_num >= 10) argp_usage(state);
             arguments->args[state->arg_num] = arg;
+            break;
         case ARGP_KEY_END:
             if (state->arg_num < 10) argp_usage(state);
             break;
