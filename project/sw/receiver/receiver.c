@@ -129,23 +129,23 @@ int main (int argc, char **argv)
     *(init_data + test - sizeof(file_x_app_layer_t)) = NULL;
     
 
-    printf("\nTEXT LINES: %d\n", (*app_layer).text_lines);
+    printf("\nTEXT LINES: %d\n", (*app_layer).current_line);
     printf("INIT_DATA: %s\n\n", init_data);
 
     //printBytes(app_header_n_data, test);
     printf("(*app_layer): 0x%08x\n",(*app_layer));
     printf("(*app_layer).file_id: %d\n",(*app_layer).file_id);
-    printf("(*app_layer).text_line: %d\n",(*app_layer).text_lines);
-    printf("(*app_layer).payload_size: %d\n",(*app_layer).payload_size);
-    printf("(*app_layer).tx_burst: %d\n",(*app_layer).tx_burst);
-    printf("(*app_layer).server_ack: %d\n",(*app_layer).server_ack);
+    printf("(*app_layer).current_line: %d\n",(*app_layer).current_line);
+    printf("(*app_layer).total_lines: %d\n",(*app_layer).total_lines);
+    printf("(*app_layer).init: %d\n",(*app_layer).init);
+    printf("(*app_layer).ack: %d\n",(*app_layer).ack);
     printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
 
 
-    char * packet_data [(*app_layer).text_lines] ;
+    char * packet_data [(*app_layer).current_line] ;
 
     int current_line;
-    int total_lines=(*app_layer).text_lines;
+    int total_lines=(*app_layer).current_line;
 
     //Each bit in the mask corresponds to received line.
     //If the nth bit is unset, the nth line is not expected to be received.
@@ -168,9 +168,9 @@ int main (int argc, char **argv)
 
         app_layer = receiveDgramBuffer;
         
-        if  ( (received_lines_record.mask & (1 << (*app_layer).text_lines)) ) ; // continue;
+        if  ( (received_lines_record.mask & (1 << (*app_layer).current_line)) ) ; // continue;
  
-        received_lines_record.mask =  ( received_lines_record.mask | (1 << (*app_layer).text_lines) );
+        received_lines_record.mask =  ( received_lines_record.mask | (1 << (*app_layer).current_line) );
         printf("mask=0x%04x\n", received_lines_record.mask);
 
         //received_lines_record.mask = 0;
@@ -183,22 +183,22 @@ int main (int argc, char **argv)
         //Copy the header and the data to the allocated memory:
         memcpy(app_layer, receiveDgramBuffer, test);
         //Get the data part of the packet containing the file name::
-        (packet_data[(*app_layer).text_lines]) = (char *)  ( ((char *) app_layer) + sizeof(file_x_app_layer_t) );
+        (packet_data[(*app_layer).current_line]) = (char *)  ( ((char *) app_layer) + sizeof(file_x_app_layer_t) );
         //Append the new line and terminate the string with null:
-        *(packet_data[(*app_layer).text_lines] + test - sizeof(file_x_app_layer_t)    ) = '\n';
-        *(packet_data[(*app_layer).text_lines] + test - sizeof(file_x_app_layer_t) + 1) = NULL;
+        *(packet_data[(*app_layer).current_line] + test - sizeof(file_x_app_layer_t)    ) = '\n';
+        *(packet_data[(*app_layer).current_line] + test - sizeof(file_x_app_layer_t) + 1) = NULL;
 
 
         printf("(*app_layer): 0x%08x\n",(*app_layer));
         printf("(*app_layer).file_id: %d\n",(*app_layer).file_id);
-        printf("(*app_layer).text_line: %d\n",(*app_layer).text_lines);
-        printf("(*app_layer).payload_size: %d\n",(*app_layer).payload_size);
-        printf("(*app_layer).tx_burst: %d\n",(*app_layer).tx_burst);
-        printf("(*app_layer).server_ack: %d\n",(*app_layer).server_ack);
+        printf("(*app_layer).current_line: %d\n",(*app_layer).current_line);
+        printf("(*app_layer).total_lines: %d\n",(*app_layer).total_lines);
+        printf("(*app_layer).init: %d\n",(*app_layer).init);
+        printf("(*app_layer).ack: %d\n",(*app_layer).ack);
         printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
 
         if (arguments.debug != 0){
-            printf("RECEIVED DGRAM:%s", packet_data[(*app_layer).text_lines]);
+            printf("RECEIVED DGRAM:%s", packet_data[(*app_layer).current_line]);
             printf("RECEIVED FROM: %s:%u\n\n", inet_ntoa(rx_from_address.sin_addr), (unsigned) ntohs(rx_from_address.sin_port));
         }
         

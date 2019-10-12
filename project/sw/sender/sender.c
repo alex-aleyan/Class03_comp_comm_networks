@@ -127,26 +127,26 @@ int main (int argc, char **argv)
     file_x_app_layer_t * app_layer;
     app_layer = malloc( sizeof(file_x_app_layer_t) );
     (*app_layer).file_id = packet_id();
-    (*app_layer).text_lines = line_count;
-    (*app_layer).server_ack = 0;
+    (*app_layer).current_line = line_count;
+    (*app_layer).ack = 0;
     (*app_layer).reserved = 0;
-    (*app_layer).tx_burst = 1;
+    (*app_layer).init = 1;
 
     //##### INIT BEGIN:
 
-    (*app_layer).payload_size = strlen(arguments.outfile);
-    (*app_layer).tx_burst = 1;
-    (*app_layer).server_ack = 0;
+    (*app_layer).total_lines = strlen(arguments.outfile);
+    (*app_layer).init = 1;
+    (*app_layer).ack = 0;
     (*app_layer).reserved = 0;
 
 
     //print the applicatin header:
     printf("\n\napp_layer: 0x%08x\n",(*app_layer));
     printf("app_layer.file_id: %d\n",(*app_layer).file_id);
-    printf("(*app_layer).text_line: %d\n",(*app_layer).text_lines);
-    printf("(*app_layer).payload_size: %d\n",(*app_layer).payload_size);
-    printf("(*app_layer).tx_burst: %d\n",(*app_layer).tx_burst);
-    printf("(*app_layer).server_ack: %d\n",(*app_layer).server_ack);
+    printf("(*app_layer).current_line: %d\n",(*app_layer).current_line);
+    printf("(*app_layer).total_lines: %d\n",(*app_layer).total_lines);
+    printf("(*app_layer).init: %d\n",(*app_layer).init);
+    printf("(*app_layer).ack: %d\n",(*app_layer).ack);
     printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
 
     int test;
@@ -180,25 +180,28 @@ int main (int argc, char **argv)
     for(current_line=line_count-1, test=-1; current_line>=0; current_line--)
     {
 
-        (*app_layer).text_lines = current_line;
-        (*app_layer).payload_size = strlen(text_line[current_line]);
-        (*app_layer).tx_burst = 1;
-        (*app_layer).server_ack = 0;
+        (*app_layer).current_line = current_line;
+        (*app_layer).total_lines = strlen(text_line[current_line]);
+        (*app_layer).init = 1;
+        (*app_layer).ack = 0;
+        (*app_layer).ack = 0;
         (*app_layer).reserved = 0;
 
         printf("\n\napp_layer: 0x%08x\n",(*app_layer));
         printf("app_layer.file_id: %d\n",(*app_layer).file_id);
-        printf("(*app_layer).text_line: %d\n",(*app_layer).text_lines);
-        printf("(*app_layer).payload_size: %d\n",(*app_layer).payload_size);
-        printf("(*app_layer).tx_burst: %d\n",(*app_layer).tx_burst);
-        printf("(*app_layer).server_ack: %d\n",(*app_layer).server_ack);
+        printf("(*app_layer).current_line: %d\n",(*app_layer).current_line);
+        printf("(*app_layer).total_lines: %d\n",(*app_layer).total_lines);
+        printf("(*app_layer).init: %d\n",(*app_layer).init);
+        printf("(*app_layer).ack: %d\n",(*app_layer).ack);
+        printf("(*app_layer).fin: %d\n",(*app_layer).fin);
         printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
         
 
         //app_header_n_data=malloc( sizeof(file_x_app_layer_t) + strlen(text_line[current_line]) );
         //memcpy(app_header_n_data, app_layer , sizeof(file_x_app_layer_t) );
         //memcpy(app_header_n_data+(sizeof(file_x_app_layer_t)), text_line[current_line], strlen(text_line[current_line])-1 );
-        app_header_n_data = concat_bytes(app_layer, sizeof(file_x_app_layer_t), text_line[current_line], strlen(text_line[current_line])-1 );
+        app_header_n_data = concat_bytes(app_layer,               sizeof(file_x_app_layer_t), 
+                                         text_line[current_line], strlen(text_line[current_line])-1 );
         
         printBytes(app_header_n_data, sizeof(file_x_app_layer_t) + strlen(text_line[current_line]) -1);
 
