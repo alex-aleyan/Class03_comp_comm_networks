@@ -134,6 +134,7 @@ int main (int argc, char **argv)
 
     //##### INIT BEGIN:
 
+    //(*app_layer).total_lines = strlen(arguments.outfile);
     (*app_layer).total_lines = strlen(arguments.outfile);
     (*app_layer).init = 1;
     (*app_layer).ack = 0;
@@ -182,7 +183,7 @@ int main (int argc, char **argv)
 
         (*app_layer).current_line = current_line;
         (*app_layer).total_lines = strlen(text_line[current_line]);
-        (*app_layer).init = 1;
+        (*app_layer).init = 0;
         (*app_layer).ack = 0;
         (*app_layer).ack = 0;
         (*app_layer).reserved = 0;

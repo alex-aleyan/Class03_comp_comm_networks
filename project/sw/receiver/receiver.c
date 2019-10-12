@@ -28,20 +28,17 @@ int main (int argc, char **argv)
     received_lines_records_t expected_lines_record ;
     expected_lines_record.mask = 0;
 
-    struct arguments arguments;
+    struct server_arguments arguments;
     
     //argument defaults:
     arguments.outfile = NULL;
-    arguments.infile = NULL;
     arguments.source_ip   = "";
     arguments.source_port = "";
-    arguments.dest_ip   = "";
-    arguments.dest_port = "";
     arguments.verbose = 0;
     arguments.debug   = 0;
     
     //Parse the options:
-    argp_parse (&argp, argc, argv, 0, 0, &arguments);
+    argp_parse(&server_argp, argc, argv, 0, 0, &arguments);
     
     if (arguments.verbose != 0){ 
         printf ( "\n");
