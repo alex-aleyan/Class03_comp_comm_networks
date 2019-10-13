@@ -108,7 +108,7 @@ int main (int argc, char **argv)
         
         */
 
-        getFileInfo( &file[current_file], arguments.args[current_file], 1);
+        getFileInfo( &file[current_file], arguments.args[current_file], current_file, 1);
 
     }
 

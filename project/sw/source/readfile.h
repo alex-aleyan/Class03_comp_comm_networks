@@ -96,13 +96,13 @@ char ** getData(FILE *fd, int * number_of_lines, int debug, char * line_ptr2[])
 }
 
 
-int getFileInfo( file_info_t *file, char * file_name, int debug)
+int getFileInfo( file_info_t *file, char * file_name, uint8_t current_file, int debug)
 {
     int NUM_OF_LINES;
     uint16_t current_line=0;
 
 
-    (*file).file_id = packet_id();
+    (*file).file_id = (packet_id() | current_file);
     FILE *fd = NULL;
 
     if ((fd=fopen(file_name,"r"))==NULL) {
