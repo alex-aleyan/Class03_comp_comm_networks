@@ -127,7 +127,8 @@ int main (int argc, char **argv)
     //Point to the destination file's name at the tail of the init packet data:
     char *destination_file_name = init_data + (10*2);
     
-    file_info_t file[10];
+    //file_info_t file[10];
+    file_info_t file[(*app_layer).total_lines]; // FIXME: create a union of two strucs for app_layer and rename the total_liens to total_files
     
     //Copy the file_ids to each file data structure:
     int current_file;
@@ -147,6 +148,7 @@ int main (int argc, char **argv)
     printf("(*app_layer).init: %d\n",(*app_layer).init);
     printf("(*app_layer).ack: %d\n",(*app_layer).ack);
     printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
+
 
     //################ REPLY TO INIT BEGIN ###################
 
