@@ -264,56 +264,62 @@ int main (int argc, char **argv)
 
     //##################### RECEIVE ACK PACKET END:##################################
 
-/*
+
     //Send data:
 //    int test;
     char *app_header_n_data=NULL;
 //    for(current_line=0, test=-1; current_line<number_of_lines_in_file[0]; current_line++)
 
-    for(current_line=number_of_lines_in_file[0]-1, test=-1; current_line>=0; current_line--)
+    for(current_file=0; current_file<10; current_file++)
     {
 
-        (*app_layer).current_line = current_line;
-        (*app_layer).total_lines = strlen(file[0].text_line[current_line]);
-        (*app_layer).init = 0;
-        (*app_layer).ack = 0;
-        (*app_layer).ack = 0;
-        (*app_layer).reserved = 0;
-
-        printf("\n\napp_layer: 0x%08x\n",(*app_layer));
-        printf("app_layer.file_id: %d\n",(*app_layer).file_id);
-        printf("(*app_layer).current_line: %d\n",(*app_layer).current_line);
-        printf("(*app_layer).total_lines: %d\n",(*app_layer).total_lines);
-        printf("(*app_layer).init: %d\n",(*app_layer).init);
-        printf("(*app_layer).ack: %d\n",(*app_layer).ack);
-        printf("(*app_layer).fin: %d\n",(*app_layer).fin);
-        printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
-        
-
-        //app_header_n_data=malloc( sizeof(file_x_app_layer_t) + strlen(file[0].text_line[current_line]) );
-        //memcpy(app_header_n_data, app_layer , sizeof(file_x_app_layer_t) );
-        //memcpy(app_header_n_data+(sizeof(file_x_app_layer_t)), file[0].text_line[current_line], strlen(file[0].text_line[current_line])-1 );
-        app_header_n_data = concat_bytes(app_layer,               sizeof(file_x_app_layer_t), 
-                                         file[0].text_line[current_line], strlen(file[0].text_line[current_line])-1 );
-        
-        printBytes(app_header_n_data, sizeof(file_x_app_layer_t) + strlen(file[0].text_line[current_line]) -1);
-
-        //SEND THE DATA: TX Socket, TX Data, TX Data Size, flags, RX Socket Info (DOMAIN, IP and PORT), size of RX Address Struct)
-        test=sendto( tx_socket_fd, 
-                     app_header_n_data,                                             \
-                     strlen(file[0].text_line[current_line])+sizeof(file_x_app_layer_t)-1,    \
-                     0,                                                             \
-                     (struct sockaddr *) &tx_to_address,                            \
-                     sizeof(tx_to_address)                                          );
-
-        if ( test < 0) printf("Failed to send line(%d).\n", current_line);
-    }
+        //for(current_line=file[current_file].number_of_lines_in_file-1, test=-1; current_line>=0; current_line--)
+        for(current_line=0, test=-1; current_line<file[current_file].number_of_lines_in_file; current_line++)
+        {
     
+            (*app_layer).file_id = file[current_file].file_id ;
+            (*app_layer).current_line = current_line;
+            (*app_layer).total_lines = file[current_file].number_of_lines_in_file;
+            (*app_layer).init = 0;
+            (*app_layer).ack = 0;
+            (*app_layer).fin = 0;
+            (*app_layer).reserved = 0;
+    
+            printf("\n\napp_layer: 0x%08x\n",(*app_layer));
+            printf("(*app_layer).file_id: %d\n",(*app_layer).file_id);
+            printf("(*app_layer).current_line: %d\n",(*app_layer).current_line);
+            printf("(*app_layer).total_lines: %d\n",(*app_layer).total_lines);
+            printf("(*app_layer).init: %d\n",(*app_layer).init);
+            printf("(*app_layer).ack: %d\n",(*app_layer).ack);
+            printf("(*app_layer).fin: %d\n",(*app_layer).fin);
+            printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
+            
+    
+            //app_header_n_data=malloc( sizeof(file_x_app_layer_t) + strlen(file[0].text_line[current_line]) );
+            //memcpy(app_header_n_data, app_layer , sizeof(file_x_app_layer_t) );
+            //memcpy(app_header_n_data+(sizeof(file_x_app_layer_t)), file[0].text_line[current_line], strlen(file[0].text_line[current_line])-1 );
+            app_header_n_data = concat_bytes(app_layer, sizeof(file_x_app_layer_t), 
+                                             file[current_file].text_line[current_line], strlen(file[current_file].text_line[current_line])-1 );
+            
+            printBytes(app_header_n_data, sizeof(file_x_app_layer_t) + strlen(file[current_file].text_line[current_line]) -1);
+    
+            //SEND THE DATA: TX Socket, TX Data, TX Data Size, flags, RX Socket Info (DOMAIN, IP and PORT), size of RX Address Struct)
+            test=sendto( tx_socket_fd, 
+                         app_header_n_data,                                             \
+                         strlen(file[current_file].text_line[current_line])+sizeof(file_x_app_layer_t)-1,    \
+                         0,                                                             \
+                         (struct sockaddr *) &tx_to_address,                            \
+                         sizeof(tx_to_address)                                          );
+    
+            if ( test < 0) printf("Failed to send line(%d).\n", current_line);
+        }
+    }    
+
+    /*
     for(current_line=0; current_line<number_of_lines_in_file[0]; current_line++)
     {
         free(file[0].text_line[current_line]);
-    }
-*/
+    }*/
   
     return 0;
 }
