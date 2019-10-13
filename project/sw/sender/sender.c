@@ -17,6 +17,7 @@
 
 
 #define MAX_NUM_OF_FILES 10
+#define MAX_CHARS_PER_LINE 512
 
 #define member_size(type, member) sizeof(((type *)0)->member)
 
@@ -123,8 +124,6 @@ int main (int argc, char **argv)
     */
     
     //##################### UDP SENDER STARTS HERE:##################################
-    
-
 
     struct sockaddr_in tx_to_address;
 
@@ -139,7 +138,6 @@ int main (int argc, char **argv)
         printf( "tx_to_address.sin_addr.s_addr = 0x%08x\n", tx_to_address.sin_addr.s_addr);
         printf( "tx_to_address.sin_port        = 0x%04x\n\n", tx_to_address.sin_port);
     }
-    
 
     //OPEN A SOCKET AND CATCH THE FD:
     int tx_socket_fd = -1;
@@ -155,9 +153,7 @@ int main (int argc, char **argv)
             }
 
     }
-  
 
-    //
     file_x_app_layer_t * app_layer;
     app_layer = malloc( sizeof(file_x_app_layer_t) );
     (*app_layer).file_id = packet_id();
@@ -169,6 +165,28 @@ int main (int argc, char **argv)
 
 
     //##################### SEND INIT PACKET BEGIN:##################################
+
+    int test;
+
+
+    //RX SOCKET:
+    struct sockaddr_in rx_local_address; // AF_INET
+    memset(&rx_local_address, 0, sizeof(rx_local_address));
+    rx_local_address.sin_family      = AF_INET;
+    //rx_local_address.sin_addr.s_addr = tx_to_address.sin_addr.s_addr;
+    //rx_local_address.sin_port        = tx_to_address.sin_port;
+    rx_local_address.sin_addr.s_addr = inet_addr(arguments.source_ip);
+    rx_local_address.sin_port        = htons(atoi(arguments.source_port));
+    if (rx_local_address.sin_addr.s_addr == INADDR_NONE) bail("bad source address");
+    //OPEN A SOCKET AND CATCH THE FD:
+    int rx_socket_fd = -1; 
+    rx_socket_fd = socket(AF_INET,SOCK_DGRAM,0);
+    if (rx_socket_fd == -1) bail("Failed to create a socket; see line: rx_socket_fd=socket(AF_INET,SOCKET_DGRAM,0);");
+    test = bind( rx_socket_fd,                          \
+                 (struct sockaddr *) &rx_local_address, \
+                 sizeof(rx_local_address)               );
+    if (test == -1) bail("bind()");
+
 
 
     //(*app_layer).total_lines = strlen(arguments.outfile);
@@ -190,7 +208,7 @@ int main (int argc, char **argv)
     printf("(*app_layer).ack: %d\n",(*app_layer).ack);
     printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
 
-    int test;
+
 
     //Allocate the memory to store the 10 file ids with the destination file's name appended at the end:
     char * init_packet_payload = malloc( (10*2) + strlen(arguments.outfile));
@@ -219,6 +237,32 @@ int main (int argc, char **argv)
     if ( test < 0) printf("Failed to send line.\n");
 
     //##################### SEND INIT PACKET END:##################################
+
+
+
+    //##################### RECEIVE ACK PACKET END:##################################
+    
+
+    char receiveDgramBuffer[MAX_CHARS_PER_LINE]; // Receive Buffer
+
+    struct sockaddr_in rx_from_address; // AF_INET
+    int rxSockLen = sizeof(rx_from_address);
+
+    test = recvfrom( rx_socket_fd,                         \
+                     receiveDgramBuffer,                   \
+                     sizeof(receiveDgramBuffer),           \
+                     0,                                    \
+                     (struct sockaddr *) &rx_from_address, \
+                     &rxSockLen                            );
+
+    app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
+
+    if ( (*app_layer).init == 0 || (*app_layer).ack == 0 ) { printf("Expected INIT and ACK field to be set!!!\n"); return -1; }
+
+    printf("(*app_layer).init: %d\n",(*app_layer).init);
+    printf("(*app_layer).ack: %d\n",(*app_layer).ack);
+
+    //##################### RECEIVE ACK PACKET END:##################################
 
 /*
     //Send data:

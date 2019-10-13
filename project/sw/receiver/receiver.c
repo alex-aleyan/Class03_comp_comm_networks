@@ -98,7 +98,6 @@ int main (int argc, char **argv)
     test = bind( rx_socket_fd,                          \
                  (struct sockaddr *) &rx_local_address, \
                  sizeof(rx_local_address)               );
-    
     if (test == -1) bail("bind()");
     
     //system("netstat -neopa | grep Recv-Q ");
@@ -149,6 +148,28 @@ int main (int argc, char **argv)
     printf("(*app_layer).ack: %d\n",(*app_layer).ack);
     printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
 
+    //################ REPLY TO INIT BEGIN ###################
+
+    (*app_layer).ack = 1;
+
+    //OPEN A SOCKET AND CATCH THE FD:
+    int tx_socket_fd = -1;
+    tx_socket_fd     = socket(AF_INET,SOCK_DGRAM,0);
+    if (tx_socket_fd < 0) { printf("error: failed to open datagram socket\n"); return -1; }
+    
+    rx_from_address.sin_port        = htons(atoi("7778"));
+
+    //Send the init packet:
+    test=sendto( tx_socket_fd,                          \
+                 app_layer,                             \
+                 sizeof(file_x_app_layer_t),            \
+                 0,                                     \
+                 (struct sockaddr *) &rx_from_address,  \
+                 sizeof(rx_from_address)               );
+
+    if ( test < 0) printf("Failed to send line.\n");
+
+    //################ REPLY TO INIT END ###################
 
     /*
     char * packet_data [(*app_layer).current_line] ;

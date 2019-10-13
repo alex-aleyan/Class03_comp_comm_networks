@@ -19,6 +19,7 @@ struct arguments
   char *args[10];            /* ARG1 and ARG2 */
   int verbose, debug;              /* The -v flag */
   char *outfile;            /* Argument for -o */
+  char *source_ip, *source_port;
   char *dest_ip,   *dest_port;  /* Arguments for -a and -b */
 };
 
@@ -36,6 +37,8 @@ static struct argp_option options[] =
   {"debug",          'x',	0              , 0, "Produce verbose output"},
   {"dest-ip",        'd', "<XX.XX.XX.XX>", 0, "Provide Destination IP/hostname"},
   {"dest-port",      'b', "<XXXX>"						 , 0, "Provide destination port number"},
+  {"source-ip",      's', "<XX.XX.XX.XX>", 0, "Provide source IP address of you NIC"},
+  {"source-port",    'p', "<XXXX>"			 , 0, "Provide source port number > 1025"},
   {"output-file",    'o', "OUTFILE"					 , 0, "Output to OUTFILE instead of to standard output"},
   {0}
 };
@@ -71,6 +74,12 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
             break;
         case 'b':
             arguments->dest_port = arg;
+            break;
+        case 's':
+            arguments->source_ip = arg;
+            break;
+        case 'p':
+            arguments->source_port = arg;
             break;
         case 'o':
             arguments->outfile = arg;
