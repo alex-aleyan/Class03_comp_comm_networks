@@ -9,3 +9,10 @@ typedef struct file_x_app_layer{
     unsigned int reserved      : 13;
 } file_x_app_layer_t;
 
+typedef struct file_info{
+    unsigned int file_id                 : 16;
+    unsigned int number_of_lines_in_file : 16;
+    //char ** text_line; //<-- won't work; must know the array size at instantation.
+    char * text_line[10];
+    //char text_line[10][255];
+} file_info_t;

@@ -120,14 +120,25 @@ int main (int argc, char **argv)
     file_x_app_layer_t * app_layer = (file_x_app_layer_t *) malloc(test + 1);
     //Copy the header and the data to the allocated memory:
     memcpy(app_layer, receiveDgramBuffer, test);
+    if ( (*app_layer).init == 0 ) { printf("Expected INIT packet but got NON-INIT packet!!!\n"); return -1; }
     //Get the data part of the packet containing the file name::
     char * init_data = (char *)  ( ((char *) app_layer) + sizeof(file_x_app_layer_t) );
     //Terminate the string with null:
-    *(init_data + test - sizeof(file_x_app_layer_t)) = NULL;
+    *(init_data + test-sizeof(file_x_app_layer_t) ) = NULL;
+    //Point to the destination file's name at the tail of the init packet data:
+    char *destination_file_name = init_data + (10*2);
     
-
-    printf("\nTEXT LINES: %d\n", (*app_layer).current_line);
-    printf("INIT_DATA: %s\n\n", init_data);
+    file_info_t file[10];
+    
+    //Copy the file_ids to each file data structure:
+    int current_file;
+    for (current_file=0; current_file<10; current_file++){
+        file[current_file].file_id = (uint16_t *) *(init_data+(current_file*2));
+        printf("file[%d].file_id=0x%04x\n",current_file, file[current_file].file_id);
+        printf("file[%d].file_id=%d\n",current_file, file[current_file].file_id);
+    }
+    
+    printf("\nDestination File:%s\n", destination_file_name );
 
     //printBytes(app_header_n_data, test);
     printf("(*app_layer): 0x%08x\n",(*app_layer));
@@ -139,15 +150,19 @@ int main (int argc, char **argv)
     printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
 
 
+    /*
     char * packet_data [(*app_layer).current_line] ;
 
     int current_line;
-    int total_lines=(*app_layer).current_line;
+    int total_lines=(*app_layer).total_lines;
 
     //Each bit in the mask corresponds to received line.
     //If the nth bit is unset, the nth line is not expected to be received.
     //If the nth bit is set, the nth line is expected to be received.
     //For example, if trasnfer is to copy 5 lines, bits 0th thru 4th will be set, and rest unset.
+
+
+    //Initialize the expected line record based on the data obtained from init packet
     for(current_line=0;current_line<total_lines;current_line++)  expected_lines_record.mask = expected_lines_record.mask | (1<<current_line);
 
     while (received_lines_record.mask != expected_lines_record.mask)
@@ -224,7 +239,8 @@ int main (int argc, char **argv)
     {   
        //free(packet_data[current_line]);
     }    
-    
+ 
+    */   
     return 0;
 }
   

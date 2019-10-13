@@ -33,12 +33,13 @@ char ** getData(FILE *fd, int * number_of_lines, int debug, char * line_ptr2[])
     char current_char;
     int line_count=0;
     for (current_char = getc(fd), line_count=0; current_char != EOF; current_char = getc(fd))  if (current_char == '\n') line_count++;
-				if (debug != 0) 	printf("\nNumber of lines (line_count): %d\n\n", line_count);
-				if (line_count == 0){ perror("Error: file-in is empty!\n\n"); return -1; };
+		    if (debug != 0) 	printf("\nNumber of lines (line_count): %d\n\n", line_count);
+		    if (line_count == 0){ perror("Error: file-in is empty!\n\n"); return -1; };
+		(*number_of_lines)=line_count;
+
     char * line_ptr[line_count];
-				(*number_of_lines)=line_count;
   
-  		rewind(fd);
+  	rewind(fd);
 
     // get number of chars per line:
     int char_count=0;
@@ -48,15 +49,15 @@ char ** getData(FILE *fd, int * number_of_lines, int debug, char * line_ptr2[])
         char_count++;
         if (current_char == '\n')
         {
-  								    // allocate just enough memory to hold the characters of current line:
-												if (debug != 0) {
-																printf("Number of char per line %d: %d\n", current_line, char_count);
-																printf("Allocating: line=%d; bytes=%d: %d\n", current_line, char_count*sizeof(char)+1);
-												}
+  			    // allocate just enough memory to hold the characters of current line:
+						if (debug != 0) {
+						    printf("Number of char per line %d: %d\n", current_line, char_count);
+						    printf("Allocating: line=%d; bytes=%d: %d\n", current_line, char_count*sizeof(char)+1);
+						}
   
             line_ptr[current_line] = malloc(char_count*sizeof(char)+1);
-												line_ptr2[current_line] = line_ptr[current_line];
-												if (debug != 0) printf("Line=%d stored at 0x%x\n\n", current_line, line_ptr[current_line]);
+						line_ptr2[current_line] = line_ptr[current_line];
+						if (debug != 0) printf("Line=%d stored at 0x%x\n\n", current_line, line_ptr[current_line]);
             if (line_ptr[current_line] == NULL) {printf("Caught NULL at malloc!!!"); return -1;};
   
             char_count = 0;
@@ -64,7 +65,7 @@ char ** getData(FILE *fd, int * number_of_lines, int debug, char * line_ptr2[])
         }
     }
   
-  		rewind(fd);
+  	rewind(fd);
   
     printf("\n");
 
@@ -73,9 +74,7 @@ char ** getData(FILE *fd, int * number_of_lines, int debug, char * line_ptr2[])
     //copy file content to allocated memory line by line one charachter at the time:
     for (current_char = getc(fd), current_line=0, char_count; current_char != EOF; current_char = getc(fd))
     {
-								if (debug != 0) {
-												if (char_count == 0) printf("Line(%d):", current_line);
-								}
+       if (debug != 0) if (char_count == 0) printf("Line(%d):", current_line);
   
         *(line_ptr[current_line]+char_count)=current_char;
         char_count++;
@@ -83,7 +82,7 @@ char ** getData(FILE *fd, int * number_of_lines, int debug, char * line_ptr2[])
         {
             //terminate with NULL:
             *(line_ptr[current_line]+char_count)='\0';
-												if (debug != 0) printf("%s", line_ptr[current_line]);
+            if (debug != 0) printf("%s", line_ptr[current_line]);
             char_count=0;
             current_line++;
         }
@@ -91,9 +90,36 @@ char ** getData(FILE *fd, int * number_of_lines, int debug, char * line_ptr2[])
   
     printf("\n");
 
-  		rewind(fd);
+  	rewind(fd);
+
+		return line_ptr;
+}
 
 
+int getFileInfo( file_info_t *file, char * file_name, int debug)
+{
+    int NUM_OF_LINES;
+    uint16_t current_line=0;
 
-				return line_ptr;
+
+    (*file).file_id = packet_id();
+    FILE *fd = NULL;
+
+    if ((fd=fopen(file_name,"r"))==NULL) {
+        fprintf(stderr, "Unable to open file:%s\nUse --input-file option, and make sure the file is present.\n", file_name); 
+        return -1; 
+    }
+    
+    (*file).number_of_lines_in_file = getLinesPerFile(fd);
+    getData(fd, &NUM_OF_LINES, 1, (*file).text_line);
+    (*file).number_of_lines_in_file = NUM_OF_LINES;
+    
+    if (debug != 0) {
+        printf("(*file).file_id:                 0x%04x\n", (*file).file_id);
+        printf("(*file).number_of_lines_in_file: 0x%04x\n", (*file).number_of_lines_in_file);
+        for(current_line=0; current_line<(*file).number_of_lines_in_file; current_line++){
+            printf("(*file).text_line[%d]:            %s",  current_line, (*file).text_line[current_line]);
+        }   
+    } 
+    return 0;
 }

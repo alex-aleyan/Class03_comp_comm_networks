@@ -30,7 +30,7 @@ Initiation Header needs to have:
 3. Server upon receival of the above packet:
     A. creates an array[total_lines] of structures. 
     B. a creation of an array of structures with next fields:
-        i. file_id set to all 0.
+        i. file_id set to all vaues received in init packet.
         ii. line pointers pointing to NULLs.
         iii. expected lines record mask pointer set to NULL
         iv.  received line record mask pointer set to null

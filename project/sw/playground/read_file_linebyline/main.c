@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "../../source/headers.h"
 #include "../../source/readfile.h"
 
 #define MAX_NUM_OF_FILES 10
