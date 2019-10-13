@@ -143,11 +143,13 @@ int main (int argc, char **argv)
     //printBytes(app_header_n_data, test);
     printf("(*app_layer): 0x%08x\n",(*app_layer));
     printf("(*app_layer).file_id: %d\n",(*app_layer).file_id);
+    printf("(*app_layer).file_number: %d\n",(*app_layer).file_number);
     printf("(*app_layer).current_line: %d\n",(*app_layer).current_line);
     printf("(*app_layer).total_lines: %d\n",(*app_layer).total_lines);
     printf("(*app_layer).init: %d\n",(*app_layer).init);
     printf("(*app_layer).ack: %d\n",(*app_layer).ack);
     printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
+
 
 
     //################ REPLY TO INIT BEGIN ###################
@@ -171,8 +173,49 @@ int main (int argc, char **argv)
 
     if ( test < 0) printf("Failed to send line.\n");
 
+    free(app_layer);
+    app_layer = NULL;
     //################ REPLY TO INIT END ###################
 
+    //################ REPLY TO INIT BEGIN ###################
+    
+    char * file_data;
+    test = recvfrom( rx_socket_fd,                         \
+                     receiveDgramBuffer,                   \
+                     sizeof(receiveDgramBuffer),           \
+                     0,                                    \
+                     (struct sockaddr *) &rx_from_address, \
+                     &txSockLen                            );
+    
+    //Allocate the memory to store: the application header + the data following the application header + 1 byte for NULL:
+    //app_layer = (file_x_app_layer_t *) malloc(test + 1);
+    app_layer = (file_x_app_layer_t *) malloc(sizeof(file_x_app_layer_t));
+    file_data = malloc(test - sizeof(file_x_app_layer_t) + 2);
+    //append new line character that was stripped right before the string was transmitted by the sender:
+    *(file_data + test - sizeof(file_x_app_layer_t)) = '\n';
+    //terminate the string with NULL:
+    *(file_data + test - sizeof(file_x_app_layer_t) + 1) = '\0';
+    //Copy the header and the data to the allocated memory:
+    memcpy(app_layer, receiveDgramBuffer, test);
+    memcpy(file_data, receiveDgramBuffer+sizeof(file_x_app_layer_t) , test-sizeof(file_x_app_layer_t) );
+    if ( (*app_layer).init == 1 ) printf("Respond with ACK!!!\n"); 
+    if ( (*app_layer).fin == 1 && (*app_layer).ack == 1 ) printf("Did not send the FIN yet. Sending FIN and terminating prematurely!!!\n"); 
+
+    //Get the data part of the packet containing the file name::
+    file[(*app_layer).file_number].text_line[(*app_layer).current_line] = file_data;
+
+    printf("\n\n\n(*app_layer): 0x%08x\n",(*app_layer));
+    printf("(*app_layer).file_id: %d\n",(*app_layer).file_id);
+    printf("(*app_layer).file_number: %d\n",(*app_layer).file_number);
+    printf("(*app_layer).current_line: %d\n",(*app_layer).current_line);
+    printf("(*app_layer).total_lines: %d\n",(*app_layer).total_lines);
+    printf("(*app_layer).init: %d\n",(*app_layer).init);
+    printf("(*app_layer).ack: %d\n",(*app_layer).ack);
+    printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
+    printf("data: %s",file[(*app_layer).file_number].text_line[(*app_layer).current_line] );
+
+
+    
     /*
     char * packet_data [(*app_layer).current_line] ;
 

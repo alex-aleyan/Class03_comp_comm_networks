@@ -157,11 +157,14 @@ int main (int argc, char **argv)
     file_x_app_layer_t * app_layer;
     app_layer = malloc( sizeof(file_x_app_layer_t) );
     (*app_layer).file_id = packet_id();
+    (*app_layer).file_number = file[0].file_number;
     (*app_layer).current_line = file[0].number_of_lines_in_file;
     (*app_layer).total_lines = strlen(arguments.outfile);
     (*app_layer).ack = 0;
-    (*app_layer).reserved = 0;
     (*app_layer).init = 1;
+    (*app_layer).fin = 0;
+    (*app_layer).reserved = 0;
+
 
 
     //##################### SEND INIT PACKET BEGIN:##################################
@@ -240,7 +243,7 @@ int main (int argc, char **argv)
 
 
 
-    //##################### RECEIVE ACK PACKET END:##################################
+    //##################### RECEIVE ACK PACKET BEGIN:##################################
     
 
     char receiveDgramBuffer[MAX_CHARS_PER_LINE]; // Receive Buffer
@@ -278,6 +281,7 @@ int main (int argc, char **argv)
         {
     
             (*app_layer).file_id = file[current_file].file_id ;
+            (*app_layer).file_number = file[current_file].file_number ;
             (*app_layer).current_line = current_line;
             (*app_layer).total_lines = file[current_file].number_of_lines_in_file;
             (*app_layer).init = 0;
@@ -287,6 +291,7 @@ int main (int argc, char **argv)
     
             printf("\n\napp_layer: 0x%08x\n",(*app_layer));
             printf("(*app_layer).file_id: %d\n",(*app_layer).file_id);
+            printf("(*app_layer).file_number: %d\n",(*app_layer).file_number);
             printf("(*app_layer).current_line: %d\n",(*app_layer).current_line);
             printf("(*app_layer).total_lines: %d\n",(*app_layer).total_lines);
             printf("(*app_layer).init: %d\n",(*app_layer).init);

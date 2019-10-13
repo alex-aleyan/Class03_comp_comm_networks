@@ -103,6 +103,7 @@ int getFileInfo( file_info_t *file, char * file_name, uint8_t current_file, int 
 
 
     (*file).file_id = (packet_id() | current_file);
+    (*file).file_number = current_file;
     FILE *fd = NULL;
 
     if ((fd=fopen(file_name,"r"))==NULL) {
