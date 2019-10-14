@@ -132,8 +132,11 @@ int main (int argc, char **argv)
     
     //Copy the file_ids to each file data structure:
     int current_file;
-    for (current_file=0; current_file<10; current_file++){
+    for (current_file=0; current_file<(*app_layer).total_lines; current_file++){
         file[current_file].file_id = (uint16_t *) *(init_data+(current_file*2));
+        file[current_file].done = 0;
+        file[current_file].number_of_lines_in_file = 0;
+        file[current_file].received_line_record = NULL;
         printf("file[%d].file_id=0x%04x\n",current_file, file[current_file].file_id);
         printf("file[%d].file_id=%d\n",current_file, file[current_file].file_id);
     }
@@ -180,6 +183,8 @@ int main (int argc, char **argv)
     //################ RECEIVE PACKETS AND REPLY TO INIT BEGIN ###################
     int all_done = 0;
     //while (!all_done){
+    int current_line;
+    int number_of_lines_received;
     while (all_done < (5*10)){
 
         char * file_data;
@@ -203,10 +208,23 @@ int main (int argc, char **argv)
         memcpy(file_data, receiveDgramBuffer+sizeof(file_x_app_layer_t) , test-sizeof(file_x_app_layer_t) );
         if ( (*app_layer).init == 1 ) printf("Respond with ACK!!!\n"); 
         if ( (*app_layer).fin == 1 && (*app_layer).ack == 1 ) printf("Did not send the FIN yet. Sending FIN and terminating prematurely!!!\n"); 
-    
+
+        //Check if a packet corresponding to this file was already received:
+        if (file[(*app_layer).file_number].received_line_record == NULL){
+            file[(*app_layer).file_number].received_line_record = (char *) calloc( (*app_layer).total_lines, sizeof(char));
+            file[(*app_layer).file_number].number_of_lines_in_file = (*app_layer).total_lines;
+        }
+        //Set the byte (corresponding to the line number just received) to 1:
+        *(file[(*app_layer).file_number].received_line_record + (*app_layer).current_line) = 1;
+
+        for (current_line=0, number_of_lines_received=0; current_line < file[(*app_layer).file_number].number_of_lines_in_file; current_line++) {
+            
+            if ( *(file[(*app_layer).file_number].received_line_record + current_line) == 1 )  number_of_lines_received++;
+        }
+
         //Get the data part of the packet containing the file name::
         file[(*app_layer).file_number].text_line[(*app_layer).current_line] = file_data;
-        file[(*app_layer).file_number].number_of_lines_in_file = (*app_layer).total_lines;
+        
     
         printf("\n\n\n(*app_layer): 0x%08x\n",(*app_layer));
         printf("(*app_layer).file_id: %d\n",(*app_layer).file_id);
@@ -296,7 +314,6 @@ int main (int argc, char **argv)
     //##################### OPEN FILE BEGIN: ##########################
     
     FILE *outfile_fd = NULL;
-    int current_line;
     if ( (outfile_fd=fopen(destination_file_name,"w")) == NULL ) {
         printf(stderr, "Unable to open file %s; Use --input-file option, and make sure the file is present.\n", arguments.outfile); 
         return -1; }

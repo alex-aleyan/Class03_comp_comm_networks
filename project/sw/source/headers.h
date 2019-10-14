@@ -15,6 +15,8 @@ typedef struct file_info{
     unsigned int file_number             : 8;
     unsigned int number_of_lines_in_file : 16;
     //char ** text_line; //<-- won't work; must know the array size at instantation.
-    char * text_line[10];
+    char * text_line[256];
+    char * received_line_record;
+    char done;
     //char text_line[10][255];
 } file_info_t;
