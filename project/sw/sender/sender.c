@@ -35,7 +35,7 @@ int main (int argc, char **argv)
     arguments.dest_port = "";
     arguments.verbose = 0;
     arguments.debug   = 0;
-    int arg_i = 0 ; for (arg_i=0; arg_i<10; arg_i++)  arguments.args[arg_i]=NULL;
+    int arg_i = 0 ; for (arg_i=0; arg_i<MAX_NUM_OF_FILES; arg_i++)  arguments.args[arg_i]=NULL;
 
   
     // Parse the Arguments:
@@ -49,7 +49,7 @@ int main (int argc, char **argv)
         printf ( "  --dest-port:  \"%s\"\n", arguments.dest_port);
         printf ( "  --output-file: \"%s\"\n\n", arguments.outfile);
         //int arg_i = 0 ;
-        for (arg_i=0; arg_i<10; arg_i++)  printf ( "arguments.args[%d]:%s\n", arg_i, arguments.args[arg_i]);
+        for (arg_i=0; arg_i<MAX_NUM_OF_FILES; arg_i++)  printf ( "arguments.args[%d]:%s\n", arg_i, arguments.args[arg_i]);
     }
 
     //Make sure dest ip and dest port are provided via options:
@@ -71,49 +71,18 @@ int main (int argc, char **argv)
   
     //##################### OPEN FILE STARTS HERE:##################################
     
-    uint16_t current_file;
-    uint16_t current_line=0;
+    int16_t current_file;
+    int16_t current_line=0;
     char ** text_line;
-    file_info_t file[10];
+    file_info_t file[MAX_NUM_OF_FILES];
 
 
-    for (current_file=0; current_file<10; current_file++){ 
-
-        /*
-        int NUM_OF_LINES;
-
-        // Create file descriptor:
-        file[current_file].file_id = packet_id();
-        FILE *fd = NULL;
-      
-        if ((fd=fopen(arguments.args[current_file],"r"))==NULL) {
-            fprintf(stderr, "Unable to open file:%s\nUse --input-file option, and make sure the file is present.\n", arguments.args[0]); 
-            return -1; 
-        } 
-     
-    
-        file[current_file].number_of_lines_in_file = getLinesPerFile(fd);
-    
-        //getData(fd, &NUM_OF_LINES, 1, text_line);
-        getData(fd, &NUM_OF_LINES, 1, file[current_file].text_line);
-        file[current_file].number_of_lines_in_file = NUM_OF_LINES;
-    
-        if (arguments.debug != 0) {
-            printf("file[%d].file_id:                 0x%04x\n", current_file, file[current_file].file_id);
-            printf("file[%d].number_of_lines_in_file: 0x%04x\n", current_file, file[current_file].number_of_lines_in_file);
-            for(current_line=0; current_line<file[current_file].number_of_lines_in_file; current_line++){
-                printf("file[%d].text_line[%d]:            %s", current_file, current_line, file[current_file].text_line[current_line] );
-            }
-        }
-        
-        */
-
+    for (current_file=0; current_file<MAX_NUM_OF_FILES; current_file++){ 
         getFileInfo( &file[current_file], arguments.args[current_file], current_file, 1);
-
     }
 
     /*
-    for (current_file=0; current_file<10; current_file++){ 
+    for (current_file=0; current_file<MAX_NUM_OF_FILES; current_file++){ 
         printf("file[%d].file_id:                 0x%04x\n", current_file, file[current_file].file_id);
         printf("file[%d].number_of_lines_in_file: 0x%04x\n", current_file, file[current_file].number_of_lines_in_file);
         for(current_line=0; current_line<file[current_file].number_of_lines_in_file; current_line++){
@@ -145,7 +114,7 @@ int main (int argc, char **argv)
     if (tx_socket_fd < 0) {perror("error: failed to open datagram socket\n"); exit(1); }
   
     //for(current_line=0; current_line<file[0].number_of_lines_in_file; current_line++) printf("%s",file[0].text_line[current_line]);
-    for (current_file=0; current_file<10; current_file++){ 
+    for (current_file=0; current_file<MAX_NUM_OF_FILES; current_file++){ 
         printf("file[%d].file_id:                 0x%04x\n", current_file, file[current_file].file_id);
         printf("file[%d].number_of_lines_in_file: 0x%04x\n", current_file, file[current_file].number_of_lines_in_file);
         for(current_line=0; current_line<file[current_file].number_of_lines_in_file; current_line++){
@@ -195,7 +164,7 @@ int main (int argc, char **argv)
     //(*app_layer).total_lines = strlen(arguments.outfile);
     (*app_layer).file_id = 0;
     (*app_layer).current_line = 0;
-    (*app_layer).total_lines = 10;
+    (*app_layer).total_lines = MAX_NUM_OF_FILES;
     (*app_layer).ack = 0;
     (*app_layer).init = 1;
     (*app_layer).fin = 0;
@@ -213,26 +182,26 @@ int main (int argc, char **argv)
 
 
 
-    //Allocate the memory to store the 10 file ids with the destination file's name appended at the end:
-    char * init_packet_payload = malloc( (10*2) + strlen(arguments.outfile));
+    //Allocate the memory to store the MAX_NUM_OF_FILES file ids with the destination file's name appended at the end:
+    char * init_packet_payload = malloc( (MAX_NUM_OF_FILES*2) + strlen(arguments.outfile));
 
     //put all file_ids at the head of the allocated memory:
-    for (current_file=0; current_file<10; current_file++)
+    for (current_file=0; current_file<MAX_NUM_OF_FILES; current_file++)
         *(init_packet_payload+(current_file*2)) = file[current_file].file_id;
 
     //place the destination file's name at the tail of the allocated memory:   
-    memcpy( (init_packet_payload+(10*2)) , arguments.outfile , strlen(arguments.outfile) );
+    memcpy( (init_packet_payload+(MAX_NUM_OF_FILES*2)) , arguments.outfile , strlen(arguments.outfile) );
     
     //Concatinate the Application Header with the Payload:
-    char * init_payload = concat_bytes(app_layer, sizeof(file_x_app_layer_t), init_packet_payload, (10*2)+strlen(arguments.outfile) );
+    char * init_payload = concat_bytes(app_layer, sizeof(file_x_app_layer_t), init_packet_payload, (MAX_NUM_OF_FILES*2)+strlen(arguments.outfile) );
 
-    printBytes(init_payload, sizeof(file_x_app_layer_t) + strlen(arguments.outfile) + (2*10) );
+    printBytes(init_payload, sizeof(file_x_app_layer_t) + strlen(arguments.outfile) + (2*MAX_NUM_OF_FILES) );
     //printf("NULL: %02x %02x \n", NULL, '\0');
     
     //Send the init packet:
     test=sendto( tx_socket_fd,                                                \
                  init_payload,                                                \
-                 sizeof(file_x_app_layer_t)+strlen(arguments.outfile)+(10*2), \
+                 sizeof(file_x_app_layer_t)+strlen(arguments.outfile)+(MAX_NUM_OF_FILES*2), \
                  0,                                                           \
                  (struct sockaddr *) &tx_to_address,                          \
                  sizeof(tx_to_address)                                        );
@@ -273,11 +242,12 @@ int main (int argc, char **argv)
     char *app_header_n_data=NULL;
 //    for(current_line=0, test=-1; current_line<number_of_lines_in_file[0]; current_line++)
 
-    for(current_file=0; current_file<10; current_file++)
+    for(current_file=9; current_file>=0; current_file--)
+    //for(current_file=0; current_file<MAX_NUM_OF_FILES; current_file++)
     {
 
-        //for(current_line=file[current_file].number_of_lines_in_file-1, test=-1; current_line>=0; current_line--)
-        for(current_line=0, test=-1; current_line<file[current_file].number_of_lines_in_file; current_line++)
+        for(current_line=file[current_file].number_of_lines_in_file-1, test=-1; current_line>=0; current_line--)
+        //for(current_line=0, test=-1; current_line<file[current_file].number_of_lines_in_file; current_line++)
         {
     
             (*app_layer).file_id = file[current_file].file_id ;
@@ -300,13 +270,10 @@ int main (int argc, char **argv)
             printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
             
     
-            //app_header_n_data=malloc( sizeof(file_x_app_layer_t) + strlen(file[0].text_line[current_line]) );
-            //memcpy(app_header_n_data, app_layer , sizeof(file_x_app_layer_t) );
-            //memcpy(app_header_n_data+(sizeof(file_x_app_layer_t)), file[0].text_line[current_line], strlen(file[0].text_line[current_line])-1 );
             app_header_n_data = concat_bytes(app_layer, sizeof(file_x_app_layer_t), 
                                              file[current_file].text_line[current_line], strlen(file[current_file].text_line[current_line])-1 );
             
-            printBytes(app_header_n_data, sizeof(file_x_app_layer_t) + strlen(file[current_file].text_line[current_line]) -1);
+            //printBytes(app_header_n_data, sizeof(file_x_app_layer_t) + strlen(file[current_file].text_line[current_line]) -1);
     
             //SEND THE DATA: TX Socket, TX Data, TX Data Size, flags, RX Socket Info (DOMAIN, IP and PORT), size of RX Address Struct)
             test=sendto( tx_socket_fd, 

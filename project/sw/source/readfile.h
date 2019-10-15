@@ -112,6 +112,7 @@ int getFileInfo( file_info_t *file, char * file_name, uint8_t current_file, int 
     }
     
     (*file).number_of_lines_in_file = getLinesPerFile(fd);
+    if (!(*file).number_of_lines_in_file) {printf("Error:%s file is empty!\n", file_name); exit(EXIT_FAILURE);}
     getData(fd, &NUM_OF_LINES, 1, (*file).text_line);
     (*file).number_of_lines_in_file = NUM_OF_LINES;
     

@@ -129,6 +129,7 @@ int main (int argc, char **argv)
     
     //file_info_t file[10];
     file_info_t file[(*app_layer).total_lines]; // FIXME: create a union of two strucs for app_layer and rename the total_liens to total_files
+    uint16_t total_files=(*app_layer).total_lines;
     
     //Copy the file_ids to each file data structure:
     int current_file;
@@ -183,9 +184,11 @@ int main (int argc, char **argv)
     //################ RECEIVE PACKETS AND REPLY TO INIT BEGIN ###################
     int all_done = 0;
     //while (!all_done){
-    int current_line;
-    int number_of_lines_received;
-    while (all_done < (5*10)){
+    uint16_t current_line;
+    uint16_t number_of_lines_received;
+    uint16_t number_of_files_received;
+    //while (all_done < (5*10)){
+    while (1){
 
         char * file_data;
         test = recvfrom( rx_socket_fd,                         \
@@ -195,7 +198,30 @@ int main (int argc, char **argv)
                          (struct sockaddr *) &rx_from_address, \
                          &txSockLen                            );
         
-        //Allocate the memory to store: the application header + the data following the application header + 1 byte for NULL:
+        // get the header:
+        app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
+
+        // make sure the packet is not an init or a fin packet:
+        if ( (*app_layer).init == 1 ){
+             printf("Respond with ACK!!!\n"); 
+
+            (*app_layer).ack = 1;
+        
+            //Send the init packet:
+            test=sendto( tx_socket_fd,                          \
+                         app_layer,                             \
+                         sizeof(file_x_app_layer_t),            \
+                         0,                                     \
+                         (struct sockaddr *) &rx_from_address,  \
+                         sizeof(rx_from_address)               );
+        
+            if ( test < 0) printf("Failed to send line.\n");
+            continue;
+        }
+
+        if ( (*app_layer).fin == 1 && (*app_layer).ack == 1 ) printf("Did not send the FIN yet. Sending FIN and terminating prematurely!!!\n"); 
+
+        //Allocate the memory to store: the application header + the data following the application header + 2 bytes for \n and NULL:
         //app_layer = (file_x_app_layer_t *) malloc(test + 1);
         app_layer = (file_x_app_layer_t *) malloc(sizeof(file_x_app_layer_t));
         file_data = malloc(test - sizeof(file_x_app_layer_t) + 2);
@@ -204,26 +230,33 @@ int main (int argc, char **argv)
         //terminate the string with NULL:
         *(file_data + test - sizeof(file_x_app_layer_t) + 1) = '\0';
         //Copy the header and the data to the allocated memory:
-        memcpy(app_layer, receiveDgramBuffer, test);
+        memcpy(app_layer, receiveDgramBuffer, sizeof(file_x_app_layer_t));
         memcpy(file_data, receiveDgramBuffer+sizeof(file_x_app_layer_t) , test-sizeof(file_x_app_layer_t) );
-        if ( (*app_layer).init == 1 ) printf("Respond with ACK!!!\n"); 
-        if ( (*app_layer).fin == 1 && (*app_layer).ack == 1 ) printf("Did not send the FIN yet. Sending FIN and terminating prematurely!!!\n"); 
 
         //Check if a packet corresponding to this file was already received:
         if (file[(*app_layer).file_number].received_line_record == NULL){
             file[(*app_layer).file_number].received_line_record = (char *) calloc( (*app_layer).total_lines, sizeof(char));
             file[(*app_layer).file_number].number_of_lines_in_file = (*app_layer).total_lines;
         }
-        //Set the byte (corresponding to the line number just received) to 1:
-        *(file[(*app_layer).file_number].received_line_record + (*app_layer).current_line) = 1;
 
-        for (current_line=0, number_of_lines_received=0; current_line < file[(*app_layer).file_number].number_of_lines_in_file; current_line++) {
-            
-            if ( *(file[(*app_layer).file_number].received_line_record + current_line) == 1 )  number_of_lines_received++;
+        //Check if this file's line has already been received (this packet is a duplicate):
+        if ( *( file[(*app_layer).file_number].received_line_record + (*app_layer).current_line ) == 1 ){
+            printf("GOT DUPLICATE\n");
+            continue;
         }
 
         //Get the data part of the packet containing the file name::
         file[(*app_layer).file_number].text_line[(*app_layer).current_line] = file_data;
+
+        //Mark the record to indicate that this line of this file is received:
+        *(file[(*app_layer).file_number].received_line_record + (*app_layer).current_line) = 1;
+
+        //Check if all lines received for this file:
+        for (current_line=0, number_of_lines_received=0; current_line < file[(*app_layer).file_number].number_of_lines_in_file; current_line++) {
+            
+            if ( *(file[(*app_layer).file_number].received_line_record + current_line) == 1 )  number_of_lines_received++;
+        }
+        if ( number_of_lines_received == file[(*app_layer).file_number].number_of_lines_in_file ) file[(*app_layer).file_number].done = 1;
         
     
         printf("\n\n\n(*app_layer): 0x%08x\n",(*app_layer));
@@ -236,7 +269,15 @@ int main (int argc, char **argv)
         printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
         printf("file[%d].line[%d]: %s", (*app_layer).file_number, (*app_layer).current_line, file[(*app_layer).file_number].text_line[(*app_layer).current_line] );
 
-    all_done++;
+        // Check if data transfer is complete:
+        for (current_file=0, number_of_files_received=0; current_file<total_files; current_file++){
+            if ( file[current_file].done == 1 )  number_of_files_received++;
+        }
+        if (number_of_files_received == total_files){
+            printf("received files: %d\n",number_of_files_received);
+            printf("total_files: %d\n",total_files);
+            break;
+        }
 
     }
     /*
