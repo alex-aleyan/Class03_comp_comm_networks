@@ -13,11 +13,11 @@
 #include "../source/func.h"
 #include "../source/headers.h"
 
-#define MAX_NUM_OF_LINES 10
+#define MAX_NUM_OF_FILES 10
 
 //received_lines_record
 typedef struct received_lines_records {
-    unsigned int mask : MAX_NUM_OF_LINES;
+    unsigned int mask : MAX_NUM_OF_FILES;
 } received_lines_records_t;
 
 
@@ -126,7 +126,7 @@ int main (int argc, char **argv)
     //Terminate the string with null:
     *(init_data + test-sizeof(file_x_app_layer_t) ) = NULL;
     //Point to the destination file's name at the tail of the init packet data:
-    char *destination_file_name = init_data + (MAX_NUM_OF_LINES*2);
+    char *destination_file_name = init_data + (MAX_NUM_OF_FILES*2);
     
     //file_info_t file[10];
     file_info_t file[(*app_layer).total_lines]; // FIXME: create a union of two strucs for app_layer and rename the total_liens to total_files
@@ -268,7 +268,8 @@ int main (int argc, char **argv)
         printf("(*app_layer).init: %d\n",(*app_layer).init);
         printf("(*app_layer).ack: %d\n",(*app_layer).ack);
         printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
-        printf("file[%d].line[%d]: %s", (*app_layer).file_number, (*app_layer).current_line, file[(*app_layer).file_number].text_line[(*app_layer).current_line] );
+        printf("file[%d].line[%d]: %s", (*app_layer).file_number, (*app_layer).current_line, \
+                                        file[(*app_layer).file_number].text_line[(*app_layer).current_line] );
 
         // Check if data transfer is complete:
         for (current_file=0, number_of_files_received=0; current_file<total_files; current_file++){
@@ -281,78 +282,7 @@ int main (int argc, char **argv)
         }
 
     }
-    /*
-    char * packet_data [(*app_layer).current_line] ;
 
-    int current_line;
-    int total_lines=(*app_layer).total_lines;
-
-    //Each bit in the mask corresponds to received line.
-    //If the nth bit is unset, the nth line is not expected to be received.
-    //If the nth bit is set, the nth line is expected to be received.
-    //For example, if trasnfer is to copy 5 lines, bits 0th thru 4th will be set, and rest unset.
-
-
-    //Initialize the expected line record based on the data obtained from init packet
-    for(current_line=0;current_line<total_lines;current_line++)  expected_lines_record.mask = expected_lines_record.mask | (1<<current_line);
-
-    while (received_lines_record.mask != expected_lines_record.mask)
-    {
-        //Receive a line of text:
-        test = recvfrom( rx_socket_fd,                         \
-                         receiveDgramBuffer,                   \
-                         sizeof(receiveDgramBuffer),           \
-                         0,                                    \
-                         (struct sockaddr *) &rx_from_address, \
-                         &txSockLen                            );
-
-        if ( test < 0) bail("recvfrom(2)"); else  printf("GOT %d BYTES\n", test);
-        printBytes(receiveDgramBuffer, test);
-
-        app_layer = receiveDgramBuffer;
-        
-        if  ( (received_lines_record.mask & (1 << (*app_layer).current_line)) ) ; // continue;
- 
-        received_lines_record.mask =  ( received_lines_record.mask | (1 << (*app_layer).current_line) );
-        printf("mask=0x%04x\n", received_lines_record.mask);
-
-        //received_lines_record.mask = 0;
-
-        // Terminate the received string with Null (maybe it's a good idea to also check the received string to make sure no nulls are present?!):
-        //receiveDgramBuffer[test] = '\n'; //NULL terminate the received string
-        
-        //Allocate the memory to store the application header and the data following the application header:
-        app_layer = (file_x_app_layer_t *) malloc(test + 2);
-        //Copy the header and the data to the allocated memory:
-        memcpy(app_layer, receiveDgramBuffer, test);
-        //Get the data part of the packet containing the file name::
-        (packet_data[(*app_layer).current_line]) = (char *)  ( ((char *) app_layer) + sizeof(file_x_app_layer_t) );
-        //Append the new line and terminate the string with null:
-        *(packet_data[(*app_layer).current_line] + test - sizeof(file_x_app_layer_t)    ) = '\n';
-        *(packet_data[(*app_layer).current_line] + test - sizeof(file_x_app_layer_t) + 1) = NULL;
-
-
-        printf("(*app_layer): 0x%08x\n",(*app_layer));
-        printf("(*app_layer).file_id: %d\n",(*app_layer).file_id);
-        printf("(*app_layer).current_line: %d\n",(*app_layer).current_line);
-        printf("(*app_layer).total_lines: %d\n",(*app_layer).total_lines);
-        printf("(*app_layer).init: %d\n",(*app_layer).init);
-        printf("(*app_layer).ack: %d\n",(*app_layer).ack);
-        printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
-
-        if (arguments.debug != 0){
-            printf("RECEIVED DGRAM:%s", packet_data[(*app_layer).current_line]);
-            printf("RECEIVED FROM: %s:%u\n\n", inet_ntoa(rx_from_address.sin_addr), (unsigned) ntohs(rx_from_address.sin_port));
-        }
-        
-    }
-    
-    if (arguments.verbose != 0)
-    for(current_line=0;current_line<total_lines;current_line++)  printf("%s", packet_data[current_line]);
-    
-    shutdown(rx_socket_fd, SHUT_RDWR);
-    
-    */
     //##################### OPEN FILE BEGIN: ##########################
     
     FILE *outfile_fd = NULL;

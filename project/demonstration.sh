@@ -28,6 +28,7 @@ fi
 if test -f "$data_file0"; then
     echo "$data_file0 exist"
 fi
+
 ./duplicate_file0.sh
 
 wireshark -i lo -k & 
@@ -36,4 +37,9 @@ sleep 2
 
 cd $server_path; $(cat README.txt) &
 cd $client_path; $(cat README.txt) 
+
+#cd $server_path; make clean;
+#cd $client_path; make clean; ./duplicate_remove.sh
+
+cd $this_path
 
