@@ -202,7 +202,7 @@ int main (int argc, char **argv)
         // get the header:
         app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
 
-        // make sure the packet is not an init or a fin packet:
+        // make sure the packet is not an init or a fin packet; if init, resend an ACK:
         if ( (*app_layer).init == 1 ){
              printf("Respond with ACK!!!\n"); 
 
@@ -220,6 +220,7 @@ int main (int argc, char **argv)
             continue;
         }
 
+        //FIXME: make sure to send FIN here and terminate:
         if ( (*app_layer).fin == 1 && (*app_layer).ack == 1 ) printf("Did not send the FIN yet. Sending FIN and terminating prematurely!!!\n"); 
 
         //Allocate the memory to store: the application header + the data following the application header + 2 bytes for \n and NULL:
@@ -301,6 +302,9 @@ int main (int argc, char **argv)
 
     //##################### OPEN FILE END: ##########################
  
+    //########FIXME: send FIN with the content of destination_file_name!
+    //########If ACK|FIN packet received then terminate, else resend FIN and expect ACK|FIN
+
     /*
     for(current_line=0; current_line<total_lines; current_line++)
     {   

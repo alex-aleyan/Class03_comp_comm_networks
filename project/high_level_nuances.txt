@@ -46,10 +46,10 @@ Initiation Header needs to have:
     pay load:         containing the actual line
 5. For each packet(4) received, server:
     A. Check if INIT; if init respond with ACK
-    B. CHeck if FIN and ACK are set; if YES but not all data received; terminate.
+    B. CHeck if FIN and ACK are set; if YES but not all data received; terminate with error.
     C. If data received, check the file number and file ID and see if all lines for file number already received
        If not, check if the line already received, if not store the line.
-    D. Check if all received is set, is yes, send FIN and until client responds with FIN|ACK packet.
+    D. Check if all received is set, if yes, send FIN and wait until client responds with FIN|ACK packet to terminate; resend FIN if non FIN|ACK packet received.
     OTHER: Checks if an array's element with matching ID already exists:
         i If does not exist, performed on the server:
             a. a creation of an array of structures with next fields:
