@@ -13,7 +13,7 @@
 #include "../source/func.h"
 #include "../source/headers.h"
 
-#define MAX_NUM_OF_LINES 20
+#define MAX_NUM_OF_LINES 10
 
 //received_lines_record
 typedef struct received_lines_records {
@@ -117,6 +117,7 @@ int main (int argc, char **argv)
 
     //Allocate the memory to store: the application header + the data following the application header + 1 byte for NULL:
     file_x_app_layer_t * app_layer = (file_x_app_layer_t *) malloc(test + 1);
+    if (app_layer == NULL) {printf("Error: malloc failed see line 120!\n"); exit(EXIT_FAILURE);}
     //Copy the header and the data to the allocated memory:
     memcpy(app_layer, receiveDgramBuffer, test);
     if ( (*app_layer).init == 0 ) { printf("Expected INIT packet but got NON-INIT packet!!!\n"); return -1; }
@@ -125,7 +126,7 @@ int main (int argc, char **argv)
     //Terminate the string with null:
     *(init_data + test-sizeof(file_x_app_layer_t) ) = NULL;
     //Point to the destination file's name at the tail of the init packet data:
-    char *destination_file_name = init_data + (10*2);
+    char *destination_file_name = init_data + (MAX_NUM_OF_LINES*2);
     
     //file_info_t file[10];
     file_info_t file[(*app_layer).total_lines]; // FIXME: create a union of two strucs for app_layer and rename the total_liens to total_files
@@ -177,7 +178,7 @@ int main (int argc, char **argv)
 
     if ( test < 0) printf("Failed to send line.\n");
 
-    free(app_layer);
+    //free(app_layer);
     app_layer = NULL;
     //################ REPLY TO INIT END ###################
 
