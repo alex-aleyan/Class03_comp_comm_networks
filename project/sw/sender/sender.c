@@ -291,7 +291,7 @@ int main (int argc, char **argv)
     //##################### SEND DATA END:##################################
     
     
-    //##################### RECEIVE ACK PACKET BEGIN:##################################
+    //##################### RECEIVE FIN PACKET BEGIN:##################################
     
 
     test = recvfrom( rx_socket_fd,                         \
@@ -308,8 +308,9 @@ int main (int argc, char **argv)
     printf("(*app_layer).fin: %d\n",(*app_layer).fin);
     printf("(*app_layer).init: %d\n",(*app_layer).init);
     printf("(*app_layer).ack: %d\n",(*app_layer).ack);
+
     
-    //##################### RECEIVE ACK PACKET END:##################################
+    //##################### RECEIVE FIN PACKET END:##################################
     
     //##################### WRITE FILE BEGIN:##################################
 
@@ -330,9 +331,15 @@ int main (int argc, char **argv)
         fclose(outfile_fd);
     } 
 
-
-    
     //##################### WRITE FILE END:##################################
+    (*app_layer).ack = 1;
+    (*app_layer).fin = 1;
+    test=sendto( tx_socket_fd, 
+                 app_layer,                                             \
+                 sizeof(file_x_app_layer_t),                            \
+                 0,                                                             \
+                 (struct sockaddr *) &tx_to_address,                            \
+                 sizeof(tx_to_address)                                          );
 
     
     /*

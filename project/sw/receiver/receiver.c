@@ -302,27 +302,9 @@ int main (int argc, char **argv)
         fclose(outfile_fd);
     }  
 
-
-
     //##################### OPEN FILE END: ##########################
     
     //########FIXME: send FIN with the content of destination_file_name!
-    /*char * consolidated_file=NULL;
-    int file_size=0;
-    for(current_file=0;current_file<10;current_file++) {
-        for(current_line=0;current_line<file[current_file].number_of_lines_in_file;current_line++) {
-
-            file_size = concat_bytes_append(consolidated_file, \
-                                            file_size, \
-                                            file[current_file].text_line[current_line], \
-                                            strlen(file[current_file].text_line[current_line]));
-
-            printf("file_size=%d\n", file_size);
-            printf("ALL IN ONE(size=%d)--%s", strlen(file[current_file].text_line[current_line]), file[current_file].text_line[current_line] );
-            printf("strlen(file[current_file].text_line[current_line])=%d\n\n", strlen(file[current_file].text_line[current_line]) );
-     
-        }
-    } */ 
 
     app_layer = malloc( sizeof(file_x_app_layer_t) );
     //(*app_layer).file_id = file[current_file].file_id ;
@@ -371,35 +353,24 @@ int main (int argc, char **argv)
                 sizeof(rx_from_address)               );
     if ( test < 0) printf("Failed to send line.\n");
 
-   // printf("ALL IN ONE(size=%d):\n%s\n\n", strlen(consolidated_file), consolidated_file);
-
-
-/*
-    (*app_layer).ack = 1;
-
-    //OPEN A SOCKET AND CATCH THE FD:
-    int tx_socket_fd = -1;
-    tx_socket_fd     = socket(AF_INET,SOCK_DGRAM,0);
-    if (tx_socket_fd < 0) { printf("error: failed to open datagram socket\n"); return -1; }
-    
-    rx_from_address.sin_port        = htons(atoi("7778"));
-
-    //Send the init packet:
-    test=sendto( tx_socket_fd,                          \
-                 app_layer,                             \
-                 sizeof(file_x_app_layer_t),            \
-                 0,                                     \
-                 (struct sockaddr *) &rx_from_address,  \
-                 sizeof(rx_from_address)               );
-
-    if ( test < 0) printf("Failed to send line.\n");
-
-    //free(app_layer);
-    //app_layer = NULL;
-*/
 
 
     //########If ACK|FIN packet received then terminate, else resend FIN and expect ACK|FIN
+    
+    test = recvfrom( rx_socket_fd,                         \
+                     receiveDgramBuffer,                   \
+                     sizeof(receiveDgramBuffer),           \
+                     0,                                    \
+                     (struct sockaddr *) &rx_from_address, \
+                     &txSockLen                            );
+
+    app_layer = receiveDgramBuffer;   
+
+    if ( (*app_layer).ack == 1 && (*app_layer).fin == 1) {
+        printf("(*app_layer).ack: %d\n",(*app_layer).ack);
+        printf("(*app_layer).fin: %d\n",(*app_layer).fin);
+        return 0;
+    }
 
     /*
     for(current_line=0; current_line<total_lines; current_line++)
@@ -407,7 +378,6 @@ int main (int argc, char **argv)
        //free(packet_data[current_line]);
     } */   
  
-    return 0;
 }
   
   
