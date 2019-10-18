@@ -182,7 +182,7 @@ int main (int argc, char **argv)
     app_layer = NULL;
     //################ REPLY TO INIT END ###################
 
-    //################ RECEIVE PACKETS AND REPLY TO INIT BEGIN ###################
+    //################ RECEIVE PACKETS OR REPLY TOi INIT WITH ACK BEGIN ###################
     int all_done = 0;
     //while (!all_done){
     uint16_t current_line;
@@ -362,6 +362,7 @@ int main (int argc, char **argv)
      
         }
     } 
+    rx_from_address.sin_port        = htons(atoi("7778"));
     test=sendto(tx_socket_fd,                          \
                 consolidated_file,                     \
                 file_size,                             \

@@ -17,7 +17,7 @@
 
 
 #define MAX_NUM_OF_FILES 10
-#define MAX_CHARS_PER_LINE 512
+#define MAX_CHARS_PER_LINE 8500
 
 #define member_size(type, member) sizeof(((type *)0)->member)
 
@@ -237,11 +237,12 @@ int main (int argc, char **argv)
     //##################### RECEIVE ACK PACKET END:##################################
 
 
+    //##################### SEND DATA BEGIN:##################################
     //Send data:
-//    int test;
+    //    int test;
     char *app_header_n_data=NULL;
-//    for(current_line=0, test=-1; current_line<number_of_lines_in_file[0]; current_line++)
 
+    //    for(current_line=0, test=-1; current_line<number_of_lines_in_file[0]; current_line++)
     for(current_file=MAX_NUM_OF_FILES-1; current_file>=0; current_file--)
     //for(current_file=0; current_file<MAX_NUM_OF_FILES; current_file++)
     {
@@ -287,6 +288,53 @@ int main (int argc, char **argv)
         }
     }    
 
+    //##################### SEND DATA END:##################################
+    
+    
+    //##################### RECEIVE ACK PACKET BEGIN:##################################
+    
+
+    test = recvfrom( rx_socket_fd,                         \
+                     receiveDgramBuffer,                   \
+                     sizeof(receiveDgramBuffer),           \
+                     0,                                    \
+                     (struct sockaddr *) &rx_from_address, \
+                     &rxSockLen                            );
+
+    app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
+
+    if ( (*app_layer).fin == 0 ) { printf("Expected FIN packet!!!\n"); return -1; }
+
+    printf("(*app_layer).fin: %d\n",(*app_layer).fin);
+    printf("(*app_layer).init: %d\n",(*app_layer).init);
+    printf("(*app_layer).ack: %d\n",(*app_layer).ack);
+    
+    //##################### RECEIVE ACK PACKET END:##################################
+    
+    //##################### WRITE FILE BEGIN:##################################
+
+    FILE *outfile_fd = NULL;
+    int current_char;
+    if ( (outfile_fd=fopen(arguments.outfile,"w")) == NULL ) { 
+        printf(stderr, "Unable to open file %s; Use --input-file option, and make sure the file is present.\n", arguments.outfile); 
+        return -1; }
+    else  {
+        fflush(outfile_fd);
+        for(current_char=0;current_char<(test-sizeof(file_x_app_layer_t));current_char++) {
+            //printf("%c", app_layer + sizeof(file_x_app_layer_t) + current_char);
+            fwrite( (char *) app_layer+sizeof(file_x_app_layer_t)+current_char, 1, 1, outfile_fd);
+         }
+        
+        //char eof_char = EOF;
+        //fwrite( &eof_char, 1, 1, outfile_fd);
+        fclose(outfile_fd);
+    } 
+
+
+    
+    //##################### WRITE FILE END:##################################
+
+    
     /*
     for(current_line=0; current_line<number_of_lines_in_file[0]; current_line++)
     {

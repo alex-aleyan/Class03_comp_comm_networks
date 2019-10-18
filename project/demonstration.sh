@@ -15,13 +15,14 @@ dest_file="file.txt"
 cd $server_path
 if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 rm $dest_file
-#make all
-#if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
+make all
+if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 
 cd $this_path
 
 cd $client_path
 if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
+rm $dest_file
 make all
 if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 
@@ -33,10 +34,10 @@ if test -f "$data_file0"; then echo "$data_file0 exist"; fi
 wireshark -i lo -k &
 sleep 3
 
-#cd $server_path; $(cat README.txt) &
+cd $server_path; $(cat README.txt) &
 cd $client_path; $(cat README.txt) 
 
-#cd $server_path; make clean; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
+cd $server_path; make clean; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 cd $client_path; make clean; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 
 ./duplicate_remove.sh; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
