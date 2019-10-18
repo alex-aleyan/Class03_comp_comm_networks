@@ -14,12 +14,9 @@ dest_file="file.txt"
 
 cd $server_path
 if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
-
 rm $dest_file
-if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
-
-make all
-if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
+#make all
+#if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 
 cd $this_path
 
@@ -33,19 +30,19 @@ if test -f "$data_file0"; then echo "$data_file0 exist"; fi
 
 ./duplicate_file0.sh
 
-wireshark -i lo -k & 
-
+wireshark -i lo -k &
 sleep 3
 
-cd $server_path; $(cat README.txt) &
+#cd $server_path; $(cat README.txt) &
 cd $client_path; $(cat README.txt) 
 
-cd $server_path; make clean; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
+#cd $server_path; make clean; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 cd $client_path; make clean; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
-                 ./duplicate_remove.sh; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
+
+./duplicate_remove.sh; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 
 cd $this_path
 
-echo -e "/n/nSee:\n\t$server_path/file.txt \
+echo -e "\n\nSee:\n\t$server_path/file.txt \
 \n\t$server_path/README.txt \
 \n\t$client_path/README.txt"

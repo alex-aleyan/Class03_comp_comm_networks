@@ -193,7 +193,7 @@ int main (int argc, char **argv)
     memcpy( (init_packet_payload+(MAX_NUM_OF_FILES*2)) , arguments.outfile , strlen(arguments.outfile) );
     
     //Concatinate the Application Header with the Payload:
-    char * init_payload = concat_bytes(app_layer, sizeof(file_x_app_layer_t), init_packet_payload, (MAX_NUM_OF_FILES*2)+strlen(arguments.outfile) );
+    char * init_payload = concat_bytes_alloc(app_layer, sizeof(file_x_app_layer_t), init_packet_payload, (MAX_NUM_OF_FILES*2)+strlen(arguments.outfile) );
 
     printBytes(init_payload, sizeof(file_x_app_layer_t) + strlen(arguments.outfile) + (2*MAX_NUM_OF_FILES) );
     //printf("NULL: %02x %02x \n", NULL, '\0');
@@ -242,7 +242,7 @@ int main (int argc, char **argv)
     char *app_header_n_data=NULL;
 //    for(current_line=0, test=-1; current_line<number_of_lines_in_file[0]; current_line++)
 
-    for(current_file=9; current_file>=0; current_file--)
+    for(current_file=MAX_NUM_OF_FILES-1; current_file>=0; current_file--)
     //for(current_file=0; current_file<MAX_NUM_OF_FILES; current_file++)
     {
 
@@ -270,7 +270,7 @@ int main (int argc, char **argv)
             printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
             
     
-            app_header_n_data = concat_bytes(app_layer, sizeof(file_x_app_layer_t), 
+            app_header_n_data = concat_bytes_alloc(app_layer, sizeof(file_x_app_layer_t), 
                                              file[current_file].text_line[current_line], strlen(file[current_file].text_line[current_line])-1 );
             
             //printBytes(app_header_n_data, sizeof(file_x_app_layer_t) + strlen(file[current_file].text_line[current_line]) -1);

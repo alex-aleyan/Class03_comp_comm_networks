@@ -215,8 +215,8 @@ int main (int argc, char **argv)
                          0,                                     \
                          (struct sockaddr *) &rx_from_address,  \
                          sizeof(rx_from_address)               );
-        
             if ( test < 0) printf("Failed to send line.\n");
+
             continue;
         }
 
@@ -285,7 +285,7 @@ int main (int argc, char **argv)
     }
 
     //##################### OPEN FILE BEGIN: ##########################
-    
+
     FILE *outfile_fd = NULL;
     if ( (outfile_fd=fopen(destination_file_name,"w")) == NULL ) {
         printf(stderr, "Unable to open file %s; Use --input-file option, and make sure the file is present.\n", arguments.outfile); 
@@ -296,13 +296,108 @@ int main (int argc, char **argv)
             for(current_line=0;current_line<file[current_file].number_of_lines_in_file;current_line++) 
                 fputs( file[current_file].text_line[current_line], outfile_fd);
                 //fputs( file[0].text_line[0], outfile_fd);
+
+                //if (test != 0) return -1;
         }
         fclose(outfile_fd);
     }  
 
+
+
     //##################### OPEN FILE END: ##########################
- 
+    
     //########FIXME: send FIN with the content of destination_file_name!
+    /*char * consolidated_file=NULL;
+    int file_size=0;
+    for(current_file=0;current_file<10;current_file++) {
+        for(current_line=0;current_line<file[current_file].number_of_lines_in_file;current_line++) {
+
+            file_size = concat_bytes_append(consolidated_file, \
+                                            file_size, \
+                                            file[current_file].text_line[current_line], \
+                                            strlen(file[current_file].text_line[current_line]));
+
+            printf("file_size=%d\n", file_size);
+            printf("ALL IN ONE(size=%d)--%s", strlen(file[current_file].text_line[current_line]), file[current_file].text_line[current_line] );
+            printf("strlen(file[current_file].text_line[current_line])=%d\n\n", strlen(file[current_file].text_line[current_line]) );
+     
+        }
+    } */ 
+
+    app_layer = malloc( sizeof(file_x_app_layer_t) );
+    //(*app_layer).file_id = file[current_file].file_id ;
+    (*app_layer).file_number = 0;
+    (*app_layer).current_line = 0;
+    (*app_layer).total_lines = file[current_file].number_of_lines_in_file;
+    (*app_layer).init = 0;
+    (*app_layer).ack = 0;
+    (*app_layer).fin = 1;
+    (*app_layer).reserved = 0;
+
+    printf("\n\napp_layer: 0x%08x\n",(*app_layer));
+    printf("(*app_layer).file_id: %d\n",(*app_layer).file_id);
+    printf("(*app_layer).file_number: %d\n",(*app_layer).file_number);
+    printf("(*app_layer).current_line: %d\n",(*app_layer).current_line);
+    printf("(*app_layer).total_lines: %d\n",(*app_layer).total_lines);
+    printf("(*app_layer).init: %d\n",(*app_layer).init);
+    printf("(*app_layer).ack: %d\n",(*app_layer).ack);
+    printf("(*app_layer).fin: %d\n",(*app_layer).fin);
+    printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
+
+
+    //char * consolidated_file=NULL;
+    char * consolidated_file=(char *) app_layer;
+    int file_size=sizeof(file_x_app_layer_t);
+    printf("app size=%d\n", sizeof(file_x_app_layer_t) );
+    
+    for(current_file=0;current_file<10;current_file++) {
+        for(current_line=0;current_line<file[current_file].number_of_lines_in_file;current_line++) {
+            file_size = concat_bytes_append(consolidated_file, \
+                                            file_size, \
+                                            file[current_file].text_line[current_line], \
+                                            strlen(file[current_file].text_line[current_line]));
+            printf("file_size=%d\n", file_size);
+            printf("ALL IN ONE(size=%d)--%s", strlen(file[current_file].text_line[current_line]), file[current_file].text_line[current_line] );
+            printf("strlen(file[current_file].text_line[current_line])=%d\n\n", strlen(file[current_file].text_line[current_line]) );
+     
+        }
+    } 
+    test=sendto(tx_socket_fd,                          \
+                consolidated_file,                     \
+                file_size,                             \
+                0,                                     \
+                (struct sockaddr *) &rx_from_address,  \
+                sizeof(rx_from_address)               );
+    if ( test < 0) printf("Failed to send line.\n");
+
+   // printf("ALL IN ONE(size=%d):\n%s\n\n", strlen(consolidated_file), consolidated_file);
+
+
+/*
+    (*app_layer).ack = 1;
+
+    //OPEN A SOCKET AND CATCH THE FD:
+    int tx_socket_fd = -1;
+    tx_socket_fd     = socket(AF_INET,SOCK_DGRAM,0);
+    if (tx_socket_fd < 0) { printf("error: failed to open datagram socket\n"); return -1; }
+    
+    rx_from_address.sin_port        = htons(atoi("7778"));
+
+    //Send the init packet:
+    test=sendto( tx_socket_fd,                          \
+                 app_layer,                             \
+                 sizeof(file_x_app_layer_t),            \
+                 0,                                     \
+                 (struct sockaddr *) &rx_from_address,  \
+                 sizeof(rx_from_address)               );
+
+    if ( test < 0) printf("Failed to send line.\n");
+
+    //free(app_layer);
+    //app_layer = NULL;
+*/
+
+
     //########If ACK|FIN packet received then terminate, else resend FIN and expect ACK|FIN
 
     /*

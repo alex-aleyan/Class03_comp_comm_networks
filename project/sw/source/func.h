@@ -219,10 +219,35 @@ int printHostByName(char *hostName){
 }
 
 
-char * concat_bytes (char * app_header, int app_header_size, char * data, int data_size)
+char * concat_bytes_alloc (char * app_header, int app_header_size, char * data, int data_size)
 {
     char * dest_file_name_ptr = malloc(app_header_size + data_size);
     memcpy(dest_file_name_ptr, app_header , app_header_size );
     memcpy(dest_file_name_ptr+app_header_size, data, data_size );
     return dest_file_name_ptr;
+}
+
+int concat_bytes_append (char * current_memory, int current_memory_size, char * append_data, int append_data_size)
+{
+    //printf("current_memory_size=%d\n", current_memory_size);
+    //printf("append_data_size=%d\n", append_data_size);
+    char * current_memory_old = current_memory;
+    if (append_data_size == 0) return current_memory_size;
+    //if (sizeof(append_data) == 0) return current_memory_size;
+//    if (current_memory == NULL && current_memory_size != 0) return -3;
+
+    //if (current_memory == NULL){
+    if (current_memory_size == 0){
+        current_memory = malloc(append_data_size);
+        if (current_memory == NULL) {current_memory = current_memory_old; return current_memory_size;}
+        memcpy(current_memory, append_data , append_data_size );
+        return (current_memory_size+append_data_size);
+    }
+
+        
+    current_memory = realloc(current_memory, current_memory_size + append_data_size);
+    if (current_memory == NULL) {current_memory = current_memory_old; return 0;}
+    memcpy( current_memory+current_memory_size, append_data , append_data_size );
+
+    return (current_memory_size + append_data_size);
 }
