@@ -27,6 +27,6 @@ if test -f "$data_file0"; then echo "$data_file0 exist"; fi
 
 cd $client_path; 
 $(cat README.txt) 
-cat $dest_file
+#cat $dest_file
 
 cd $this_path

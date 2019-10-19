@@ -177,8 +177,10 @@ int main (int argc, char **argv)
     app_layer = calloc(1, sizeof(file_x_app_layer_t) );
 
     while(1) {
-        switch(STATE) {
-            case SEND_INIT:
+        //switch(STATE) {
+            //case SEND_INIT:
+            if (STATE ==  SEND_INIT){
+                printf("SEND_INIT\n");
         
                 STATE=RECIEVE_ACK;
                 
@@ -195,6 +197,7 @@ int main (int argc, char **argv)
                 (*app_layer).reserved = 0;
             
                 //print the applicatin header:
+                /*
                 printf("SEND_INIT: \n\napp_layer: 0x%08x\n",(*app_layer));
                 printf("SEND_INIT: app_layer.file_id: %d\n",(*app_layer).file_id);
                 printf("SEND_INIT: (*app_layer).current_line: %d\n",(*app_layer).current_line);
@@ -202,6 +205,7 @@ int main (int argc, char **argv)
                 printf("SEND_INIT: (*app_layer).init: %d\n",(*app_layer).init);
                 printf("SEND_INIT: (*app_layer).ack: %d\n",(*app_layer).ack);
                 printf("SEND_INIT: (*app_layer).reserved: %d\n",(*app_layer).reserved);
+                */
             
                 //Allocate the memory to store the MAX_NUM_OF_FILES file ids with the destination file's name appended at the end:
                 char * init_packet_payload = calloc(1, (MAX_NUM_OF_FILES*2) + strlen(arguments.outfile));
@@ -219,8 +223,7 @@ int main (int argc, char **argv)
                 free(init_packet_payload);
                 free(app_layer);
             
-                printf("SEND_INIT:\n");
-                printBytes(init_payload, sizeof(file_x_app_layer_t) + strlen(arguments.outfile) + (2*MAX_NUM_OF_FILES) );
+                //printBytes(init_payload, sizeof(file_x_app_layer_t) + strlen(arguments.outfile) + (2*MAX_NUM_OF_FILES) );
                 //printf("SEND_INIT: NULL: %02x %02x \n", NULL, '\0');
                 
                 //Send the init packet:
@@ -237,17 +240,34 @@ int main (int argc, char **argv)
             
                 //##################### SEND INIT PACKET END:##################################
                 //
-                break;
-    
-            case RECIEVE_ACK:
+            }
+            //case RECIEVE_ACK:
+            if (STATE ==  RECIEVE_ACK){
+                printf("RECIEVE_ACK\n");
+
+                test = recvfrom( rx_socket_fd,                             \
+                         receiveDgramBuffer,                   \
+                         sizeof(receiveDgramBuffer),           \
+                         0,                                    \
+                         (struct sockaddr *) &rx_from_address, \
+                         &rxSockLen                            );
+                app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
+
+                printf("(*app_layer).fin: %d\n",(*app_layer).fin);
+                printf("(*app_layer).init: %d\n",(*app_layer).init);
+                printf("(*app_layer).ack: %d\n",(*app_layer).ack);
                 STATE = SEND_DATA;
 
-                if ( (*app_layer).init == 0) STATE = SEND_INIT;
-                printf("RECEIVE_ACK: (*app_layer).init: %d\n",(*app_layer).init);
-                printf("RECEIVE_ACK: (*app_layer).ack: %d\n",(*app_layer).ack);
-                continue;
+                if ( (*app_layer).ack != 1 || (*app_layer).init != 1 ) { 
+                    STATE = SEND_INIT; 
+                    continue;
+                }
 
-            case SEND_DATA:
+            }
+
+            //case SEND_DATA:
+            if (STATE ==  SEND_DATA){
+                printf("SEND_DATA\n");
                 STATE = RECIEVE_DATA;
 
                 //##################### SEND DATA BEGIN:##################################
@@ -275,7 +295,7 @@ int main (int argc, char **argv)
                         (*app_layer).current_line = current_line;
                         (*app_layer).total_lines = file[current_file].number_of_lines_in_file;
 
-                
+                        /* 
                         printf("\n\napp_layer: 0x%08x\n",(*app_layer));
                         printf("(*app_layer).file_id: %d\n",(*app_layer).file_id);
                         printf("(*app_layer).file_number: %d\n",(*app_layer).file_number);
@@ -285,7 +305,7 @@ int main (int argc, char **argv)
                         printf("(*app_layer).ack: %d\n",(*app_layer).ack);
                         printf("(*app_layer).fin: %d\n",(*app_layer).fin);
                         printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
-                        
+                        */
                 
                         app_header_n_data = concat_bytes_alloc(app_layer, sizeof(file_x_app_layer_t), 
                                                          file[current_file].text_line[current_line], strlen(file[current_file].text_line[current_line])-1 );
@@ -309,12 +329,22 @@ int main (int argc, char **argv)
             
                 //##################### SEND DATA END:##################################
 
-                break;
-        
-            case RECIEVE_DATA: 
-                STATE = SEND_FIN_ACK;
+                //break;
+            }
+            //case RECIEVE_DATA: 
+            if (STATE ==  RECIEVE_DATA){
+                printf("RECEIVE_DATA\n");
 
-                if ( (*app_layer).fin == 0 ) { STATE = SEND_DATA; continue;};
+                test = recvfrom( rx_socket_fd,                             \
+                         receiveDgramBuffer,                   \
+                         sizeof(receiveDgramBuffer),           \
+                         0,                                    \
+                         (struct sockaddr *) &rx_from_address, \
+                         &rxSockLen                            );
+                app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
+
+                STATE = SEND_FIN_ACK;
+                if ( (*app_layer).fin == 0 ) STATE = SEND_DATA;
     
                 printf("(*app_layer).fin: %d\n",(*app_layer).fin);
                 printf("(*app_layer).init: %d\n",(*app_layer).init);
@@ -340,9 +370,10 @@ int main (int argc, char **argv)
                 } 
             
                 //##################### WRITE FILE END SEND_FIN_ACK BEGIN:##################################
-
-            case SEND_FIN_ACK:
-                printf("SENDING FIN|ACK\n");
+            }
+            //case SEND_FIN_ACK:
+            if (STATE ==  SEND_FIN_ACK){
+                printf("SEND_FIN_ACK\n");
                 STATE = RECIEVE_FIN_ACK;
 
                 app_layer = calloc(1, sizeof(file_x_app_layer_t) );
@@ -365,22 +396,28 @@ int main (int argc, char **argv)
 
                 if ( test < 0) printf("Failed to send FIN|ACK\n");
                 free(app_layer);
-                break;
+                //break;
+            }
+            //case RECIEVE_FIN_ACK:
+            if (STATE ==  RECIEVE_FIN_ACK){
+                printf("RECIEVE_FIN_ACK\n");
+                printf("(*app_layer).fin: %d\n",(*app_layer).fin);
+                printf("(*app_layer).init: %d\n",(*app_layer).init);
+                printf("(*app_layer).ack: %d\n",(*app_layer).ack);
 
-            case RECIEVE_FIN_ACK:
-                printf("RECIEVED FIN|ACK\n");
                 if ( (*app_layer).fin == 1 && (*app_layer).ack == 1) return 0;
 
                 STATE = SEND_FIN_ACK;
                 
                 printf("RECEIVE_FIN_ACK: (*app_layer).init: %d\n",(*app_layer).init);
                 printf("RECEIVE_FIN_ACK: (*app_layer).ack: %d\n",(*app_layer).ack);
-                continue;
+                //continue;
+            }
 
-            default: return -1;
-        }   
+            //default: return -1;
+        //}   
 
-    
+        printf("running rcvfrom\n");   
         test = recvfrom( rx_socket_fd,                             \
                          receiveDgramBuffer,                   \
                          sizeof(receiveDgramBuffer),           \
