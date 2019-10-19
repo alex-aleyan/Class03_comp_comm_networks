@@ -160,6 +160,7 @@ int main (int argc, char **argv)
     //################ REPLY TO INIT BEGIN ###################
 
     (*app_layer).ack = 1;
+    (*app_layer).init = 1;
 
     //OPEN A SOCKET AND CATCH THE FD:
     int tx_socket_fd = -1;
