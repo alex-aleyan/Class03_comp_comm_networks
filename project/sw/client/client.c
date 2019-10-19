@@ -85,6 +85,7 @@ int main (int argc, char **argv)
     }
 
     /*
+    printf("#############\n##############\n##############");
     for (current_file=0; current_file<MAX_NUM_OF_FILES; current_file++){ 
         printf("file[%d].file_id:                 0x%04x\n", current_file, file[current_file].file_id);
         printf("file[%d].number_of_lines_in_file: 0x%04x\n", current_file, file[current_file].number_of_lines_in_file);
@@ -93,6 +94,7 @@ int main (int argc, char **argv)
             }
 
     }
+
     */
     //##################### CLOSE FILE STARTS HERE:##################################
     
@@ -127,6 +129,7 @@ int main (int argc, char **argv)
 
     }
     //##################### CLOSE UDP SENDER BEGIN:##################################
+
 
 
     

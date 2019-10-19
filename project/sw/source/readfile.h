@@ -106,7 +106,8 @@ int getFileInfo( file_info_t *file, char * file_name, uint8_t current_file, int 
     (*file).file_number = current_file;
     FILE *fd = NULL;
 
-    if ((fd=fopen(file_name,"r"))==NULL) {
+    fd=fopen(file_name,"r");
+    if (fd == NULL) {
         fprintf(stderr, "Unable to open file:%s\nUse --input-file option, and make sure the file is present.\n", file_name); 
         return -1; 
     }
@@ -123,5 +124,6 @@ int getFileInfo( file_info_t *file, char * file_name, uint8_t current_file, int 
             printf("(*file).text_line[%d]:            %s",  current_line, (*file).text_line[current_line]);
         }   
     } 
+    close(fd);
     return 0;
 }
