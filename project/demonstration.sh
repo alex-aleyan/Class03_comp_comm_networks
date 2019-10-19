@@ -1,13 +1,14 @@
 #!/bin/bash
 which wireshark sed awk make; if [[ $? -ne 0 ]]; then echo "install: wireshark, sed, awk, make"; fi
+if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 
 
 this_path="$(pwd)"
 echo $this_path
 path_to_script="$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )"
 echo $path_to_script
-server_path="${path_to_script}/sw/receiver"
-client_path="${path_to_script}/sw/sender"
+server_path="${path_to_script}/sw/server"
+client_path="${path_to_script}/sw/client"
 
 data_file0="file0.txt"
 dest_file="file.txt"
@@ -34,8 +35,12 @@ if test -f "$data_file0"; then echo "$data_file0 exist"; fi
 wireshark -i lo -k &
 sleep 3
 
-cd $server_path; $(cat README.txt) &
-cd $client_path; $(cat README.txt) 
+cd $server_path; 
+$(cat README.txt) &
+
+cd $client_path; 
+$(cat README.txt) 
+
 
 cd $server_path; make clean; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 cd $client_path; make clean; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
