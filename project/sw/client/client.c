@@ -24,6 +24,7 @@
 int main (int argc, char **argv)
 {
   
+    int test;
 
     //##################### OPARSE ARGS STARTS HERE:##################################
   
@@ -68,6 +69,8 @@ int main (int argc, char **argv)
         printf( "The arguments.dest_ip=%s\n",   arguments.dest_ip);
         printf( "The arguments.dest_port=%d\n\n", atoi(arguments.dest_port) );
     }
+
+
   
     //##################### OPEN FILE STARTS HERE:##################################
     
@@ -91,8 +94,11 @@ int main (int argc, char **argv)
 
     }
     */
+    //##################### CLOSE FILE STARTS HERE:##################################
     
-    //##################### UDP SENDER STARTS HERE:##################################
+    
+    
+    //##################### OPEN UDP SENDER BEGIN:##################################
 
     struct sockaddr_in tx_to_address;
 
@@ -105,8 +111,7 @@ int main (int argc, char **argv)
     if (arguments.debug != 0) {
         printf( "tx_to_address.sin_family      = AF_INET\n");
         printf( "tx_to_address.sin_addr.s_addr = 0x%08x\n", tx_to_address.sin_addr.s_addr);
-        printf( "tx_to_address.sin_port        = 0x%04x\n\n", tx_to_address.sin_port);
-    }
+        printf( "tx_to_address.sin_port        = 0x%04x\n\n", tx_to_address.sin_port);      }
 
     //OPEN A SOCKET AND CATCH THE FD:
     int tx_socket_fd = -1;
@@ -118,38 +123,27 @@ int main (int argc, char **argv)
         printf("file[%d].file_id:                 0x%04x\n", current_file, file[current_file].file_id);
         printf("file[%d].number_of_lines_in_file: 0x%04x\n", current_file, file[current_file].number_of_lines_in_file);
         for(current_line=0; current_line<file[current_file].number_of_lines_in_file; current_line++){
-            printf("file[%d].text_line[%d]:            %s", current_file, current_line, file[current_file].text_line[current_line]);
-            }
+            printf("file[%d].text_line[%d]:            %s", current_file, current_line, file[current_file].text_line[current_line]);  }
 
     }
-
-    file_x_app_layer_t * app_layer;
-    app_layer = malloc( sizeof(file_x_app_layer_t) );
-    (*app_layer).file_id = packet_id();
-    (*app_layer).file_number = file[0].file_number;
-    (*app_layer).current_line = file[0].number_of_lines_in_file;
-    (*app_layer).total_lines = strlen(arguments.outfile);
-    (*app_layer).ack = 0;
-    (*app_layer).init = 1;
-    (*app_layer).fin = 0;
-    (*app_layer).reserved = 0;
+    //##################### CLOSE UDP SENDER BEGIN:##################################
 
 
+    
+    //##################### OPEN UDP RECEIVER BEGIN:##################################
+    char receiveDgramBuffer[MAX_CHARS_PER_LINE]; // Receive Buffer
 
-    //##################### SEND INIT PACKET BEGIN:##################################
-
-    int test;
-
+    struct sockaddr_in rx_from_address; // AF_INET
+    int rxSockLen = sizeof(rx_from_address);
 
     //RX SOCKET:
     struct sockaddr_in rx_local_address; // AF_INET
     memset(&rx_local_address, 0, sizeof(rx_local_address));
     rx_local_address.sin_family      = AF_INET;
-    //rx_local_address.sin_addr.s_addr = tx_to_address.sin_addr.s_addr;
-    //rx_local_address.sin_port        = tx_to_address.sin_port;
     rx_local_address.sin_addr.s_addr = inet_addr(arguments.source_ip);
     rx_local_address.sin_port        = htons(atoi(arguments.source_port));
     if (rx_local_address.sin_addr.s_addr == INADDR_NONE) bail("bad source address");
+
     //OPEN A SOCKET AND CATCH THE FD:
     int rx_socket_fd = -1; 
     rx_socket_fd = socket(AF_INET,SOCK_DGRAM,0);
@@ -158,10 +152,14 @@ int main (int argc, char **argv)
                  (struct sockaddr *) &rx_local_address, \
                  sizeof(rx_local_address)               );
     if (test == -1) bail("bind()");
+    //##################### CLOSE UDP RECEIVER BEGIN:##################################
 
 
 
-    //(*app_layer).total_lines = strlen(arguments.outfile);
+    //##################### SEND INIT PACKET BEGIN:##################################
+    // Build init packet:
+    file_x_app_layer_t * app_layer;
+    app_layer = calloc(1, sizeof(file_x_app_layer_t) );
     (*app_layer).file_id = 0;
     (*app_layer).current_line = 0;
     (*app_layer).total_lines = MAX_NUM_OF_FILES;
@@ -169,7 +167,6 @@ int main (int argc, char **argv)
     (*app_layer).init = 1;
     (*app_layer).fin = 0;
     (*app_layer).reserved = 0;
-
 
     //print the applicatin header:
     printf("\n\napp_layer: 0x%08x\n",(*app_layer));
@@ -180,10 +177,8 @@ int main (int argc, char **argv)
     printf("(*app_layer).ack: %d\n",(*app_layer).ack);
     printf("(*app_layer).reserved: %d\n",(*app_layer).reserved);
 
-
-
     //Allocate the memory to store the MAX_NUM_OF_FILES file ids with the destination file's name appended at the end:
-    char * init_packet_payload = malloc( (MAX_NUM_OF_FILES*2) + strlen(arguments.outfile));
+    char * init_packet_payload = calloc(1, (MAX_NUM_OF_FILES*2) + strlen(arguments.outfile));
 
     //put all file_ids at the head of the allocated memory:
     for (current_file=0; current_file<MAX_NUM_OF_FILES; current_file++)
@@ -194,6 +189,9 @@ int main (int argc, char **argv)
     
     //Concatinate the Application Header with the Payload:
     char * init_payload = concat_bytes_alloc(app_layer, sizeof(file_x_app_layer_t), init_packet_payload, (MAX_NUM_OF_FILES*2)+strlen(arguments.outfile) );
+
+    free(init_packet_payload);
+    free(app_layer);
 
     printBytes(init_payload, sizeof(file_x_app_layer_t) + strlen(arguments.outfile) + (2*MAX_NUM_OF_FILES) );
     //printf("NULL: %02x %02x \n", NULL, '\0');
@@ -208,17 +206,13 @@ int main (int argc, char **argv)
 
     if ( test < 0) printf("Failed to send line.\n");
 
+    free(init_payload);
+
     //##################### SEND INIT PACKET END:##################################
 
 
 
     //##################### RECEIVE ACK PACKET BEGIN:##################################
-    
-
-    char receiveDgramBuffer[MAX_CHARS_PER_LINE]; // Receive Buffer
-
-    struct sockaddr_in rx_from_address; // AF_INET
-    int rxSockLen = sizeof(rx_from_address);
 
     test = recvfrom( rx_socket_fd,                         \
                      receiveDgramBuffer,                   \
@@ -241,6 +235,8 @@ int main (int argc, char **argv)
     //Send data:
     //    int test;
     char *app_header_n_data=NULL;
+
+    app_layer = calloc(1, sizeof(file_x_app_layer_t) );
 
     //    for(current_line=0, test=-1; current_line<number_of_lines_in_file[0]; current_line++)
     for(current_file=MAX_NUM_OF_FILES-1; current_file>=0; current_file--)
@@ -285,13 +281,15 @@ int main (int argc, char **argv)
                          sizeof(tx_to_address)                                          );
     
             if ( test < 0) printf("Failed to send line(%d).\n", current_line);
+            free(app_header_n_data);
         }
     }    
+    free(app_layer);
 
     //##################### SEND DATA END:##################################
     
     
-    //##################### RECEIVE FIN PACKET BEGIN:##################################
+    //##################### RECEIVE FIN PACKET BEGIN RECEIVE_FIN:##################################
     
 
     test = recvfrom( rx_socket_fd,                         \
@@ -331,7 +329,9 @@ int main (int argc, char **argv)
         fclose(outfile_fd);
     } 
 
-    //##################### WRITE FILE END:##################################
+    //##################### WRITE FILE END SEND_FIN_ACK BEGIN:##################################
+    app_layer = calloc(1, sizeof(file_x_app_layer_t) );
+
     (*app_layer).ack = 1;
     (*app_layer).fin = 1;
     test=sendto( tx_socket_fd, 
@@ -341,7 +341,9 @@ int main (int argc, char **argv)
                  (struct sockaddr *) &tx_to_address,                            \
                  sizeof(tx_to_address)                                          );
 
-    
+    free(app_layer);
+    //##################### WRITE FILE END SEND_FIN_ACK END:##################################
+
     /*
     for(current_line=0; current_line<number_of_lines_in_file[0]; current_line++)
     {
