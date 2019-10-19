@@ -370,6 +370,14 @@ int main (int argc, char **argv)
     if ( (*app_layer).ack == 1 && (*app_layer).fin == 1) {
         printf("(*app_layer).ack: %d\n",(*app_layer).ack);
         printf("(*app_layer).fin: %d\n",(*app_layer).fin);
+        rx_from_address.sin_port        = htons(atoi("7778"));
+        test=sendto(tx_socket_fd,                          \
+                    app_layer,                             \
+                    sizeof(file_x_app_layer_t),            \
+                    0,                                     \
+                    (struct sockaddr *) &rx_from_address,  \
+                    sizeof(rx_from_address)               );
+    if ( test < 0) printf("Failed to send line.\n");
         return 0;
     }
 
