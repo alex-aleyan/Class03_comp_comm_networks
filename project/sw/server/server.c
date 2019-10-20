@@ -25,14 +25,12 @@ typedef struct received_lines_records {
 
 
 typedef enum {
-    LISTEN_FOR_CONNECTION,
-    RECEIVE_INIT,
-    SEND_ACK,
+    LISTEN_FOR_INIT,
+    SEND_INIT_ACK,
     RECEIVE_DATA,
     SEND_FIN_DATA,
     RECEIVE_FIN_ACK,
     SEND_FIN_ACK,
-    SAVE_DATA
 } fsm_state_t;
 
 
@@ -130,7 +128,7 @@ int main (int argc, char **argv)
     tx_socket_fd = socket(AF_INET,SOCK_DGRAM,0);
     if (tx_socket_fd < 0) { printf("error: failed to open datagram socket\n"); return -1; }
 
-    fsm_state_t STATE = RECEIVE_INIT;
+    fsm_state_t STATE = LISTEN_FOR_INIT;
 
     file_x_app_layer_t * app_layer = NULL;
     int txSockLen = sizeof(rx_from_address);
@@ -155,10 +153,10 @@ int main (int argc, char **argv)
 
 
         //switch(STATE) {
-            //case RECEIVE_INIT:
+            //case LISTEN_FOR_INIT:
 
-          if (STATE == RECEIVE_INIT) {
-                printf("RECEIVE_INIT\n");
+          if (STATE == LISTEN_FOR_INIT) {
+                printf("LISTEN_FOR_INIT\n");
 
                 test = recvfrom( rx_socket_fd,                         \
                                  receiveDgramBuffer,                   \
@@ -167,7 +165,7 @@ int main (int argc, char **argv)
                                  (struct sockaddr *) &rx_from_address, \
                                  &txSockLen                            );
                 //time out occured or other error:
-                if (test < 0) { STATE=RECEIVE_INIT; continue; }
+                if (test < 0) { STATE=LISTEN_FOR_INIT; continue; }
 
                 
                 app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
@@ -177,8 +175,8 @@ int main (int argc, char **argv)
                 printf("(*app_layer).fin: %d\n",(*app_layer).fin);
 
                 //printf("RECEIVE_ACK: (*app_layer).init: %d\n", (*app_layer).init );
-                if ( (*app_layer).init == 0) {STATE = RECEIVE_INIT; break;};
-                STATE = SEND_ACK;
+                if ( (*app_layer).init == 0) {STATE = LISTEN_FOR_INIT; break;};
+                STATE = SEND_INIT_ACK;
                 //################ RECEIVE INIT PACKET ###################
                 //Allocate the memory to store: the application header + the data following the application header + 1 byte for NULL:
                 app_layer = (file_x_app_layer_t *) malloc(test + 1);
@@ -227,11 +225,11 @@ int main (int argc, char **argv)
                 //free(app_layer);
                 app_layer = NULL;
             }
-            //case SEND_ACK:
-            if (STATE == SEND_ACK){
+            //case SEND_INIT_ACK:
+            if (STATE == SEND_INIT_ACK){
                 STATE = RECEIVE_DATA;
 
-                printf("SEND_ACK\n");
+                printf("SEND_INIT_ACK\n");
 
                 //################ REPLY TO INIT BEGIN ###################
                 app_layer = (file_x_app_layer_t *) calloc(1,test + 1);
@@ -283,7 +281,7 @@ int main (int argc, char **argv)
                                      &txSockLen                            );
 
                     //time out occured or other error:
-                    if (test < 0) { STATE=SEND_ACK; continue; }
+                    if (test < 0) { STATE=SEND_INIT_ACK; continue; }
                     
                     // get the header:
                     app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
@@ -292,7 +290,7 @@ int main (int argc, char **argv)
             
                     // make sure the packet is not an init or a fin packet; if init, resend an ACK:
                     if ( (*app_layer).init == 1 ){
-                        STATE = SEND_ACK;
+                        STATE = SEND_INIT_ACK;
                          printf("Respond with ACK!!!\n"); 
 
                          printf("(*app_layer).init: %d\n",(*app_layer).init);

@@ -28,8 +28,6 @@ typedef enum {
     RECEIVE_FIN_DATA,
     SEND_FIN_ACK,
     RECIEVE_FIN_ACK,
-    SAVE_DATA,
-    DONE
 } fsm_state_t;
 
 int main (int argc, char **argv)
