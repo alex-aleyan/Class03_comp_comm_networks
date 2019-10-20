@@ -1,6 +1,6 @@
 #use this compiler:
 CC=gcc
-CC_OPTIONS=-v -Wall -W -D_GNU_SOURCE
+CC_OPTIONS=-v -Wall -W -D_GNU_SOURCE -DMAX_NUM_OF_FILES=10 -DMAX_NUM_OF_LINES=1024 -DRECEIVE_BUFFER_SIZE=9000
 CC_DEBUG_OPTIONS=-v -g --save-temps -Wall -W -D_GNU_SOURCE -W -DGETPROTOBYNUMBER
 PROG_NAME=client
 TARGET=$(PROG_NAME).run
@@ -16,7 +16,8 @@ all: non_debug
 alldebug: debug
 
 debug:
-	$(CC) $(CC_DEBUG_OPTIONS) $(SRC) ../source/parse_args.h -o $(TARGET)
+	$(CC) $(CC_DEBUG_OPTIONS) $(SRC) -o $(TARGET)
+#$(CC) $(CC_DEBUG_OPTIONS) $(SRC) ../source/parse_args.h -o $(TARGET)
 
 
 non_debug:

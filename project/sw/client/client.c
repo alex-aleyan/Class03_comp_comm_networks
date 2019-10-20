@@ -16,8 +16,17 @@
 #include "../source/packet_id.h"
 #include <sys/time.h>
 
-#define MAX_NUM_OF_FILES 10
-#define MAX_CHARS_PER_LINE 8500
+#ifndef MAX_NUM_OF_FILES
+    #define MAX_NUM_OF_FILES 10
+#endif
+
+#ifndef MAX_NUM_OF_LINES
+    #define MAX_NUM_OF_LINES 2048
+#endif
+
+#ifndef RECEIVE_BUFFER_SIZE
+    #define RECEIVE_BUFFER_SIZE 8500
+#endif
 
 #define member_size(type, member) sizeof(((type *)0)->member)
 
@@ -142,7 +151,7 @@ int main (int argc, char **argv)
 
     
     //##################### OPEN UDP RECEIVER BEGIN:##################################
-    char receiveDgramBuffer[MAX_CHARS_PER_LINE]; // Receive Buffer
+    char receiveDgramBuffer[RECEIVE_BUFFER_SIZE]; // Receive Buffer
 
     struct sockaddr_in rx_from_address; // AF_INET
     int rxSockLen = sizeof(rx_from_address);

@@ -14,7 +14,17 @@
 #include "../source/headers.h"
 #include <sys/time.h>
 
-#define MAX_NUM_OF_FILES 10
+#ifndef MAX_NUM_OF_FILES
+    #define MAX_NUM_OF_FILES 10
+#endif
+
+#ifndef MAX_NUM_OF_LINES
+    #define MAX_NUM_OF_LINES 2048
+#endif
+
+#ifndef RECEIVE_BUFFER_SIZE
+    #define RECEIVE_BUFFER_SIZE 8500
+#endif
 
 
 
