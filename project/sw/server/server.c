@@ -46,7 +46,6 @@ int main (int argc, char **argv)
     struct server_arguments arguments;
     
     //argument defaults:
-    arguments.outfile = NULL;
     arguments.source_ip   = "";
     arguments.source_port = "";
     arguments.verbose = 0;
@@ -60,7 +59,6 @@ int main (int argc, char **argv)
         printf ( "These arguments received:\n");
         printf ( "  --source-ip:    \"%s\"\n",   arguments.source_ip);
         printf ( "  --source-port:  \"%s\"\n", arguments.source_port);
-        printf ( "  --output-file: \"%s\"\n\n", arguments.outfile);
     } 
     
     //Make sure dest ip and dest port are provided via options:
@@ -372,7 +370,7 @@ int main (int argc, char **argv)
 
 
                 if ( (outfile_fd=fopen(destination_file_name,"w")) == NULL ) {
-                    printf(stderr, "Unable to open file %s; Use --input-file option, and make sure the file is present.\n", arguments.outfile); 
+                    printf(stderr, "Unable to open file %s; Use --input-file option, and make sure the file is present.\n", destination_file_name); 
                     return -1; }
                 else  {
                     fflush(outfile_fd);

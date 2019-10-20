@@ -17,7 +17,7 @@ DEMONSTRATION:
 
   project/demonstration
 
-MANUALLY RUN:
+MANUALLY RUN DEMONSTRATION:
 
     1. Build the software by running:
     
@@ -27,7 +27,7 @@ MANUALLY RUN:
     
         project/sw/server/server.run --source-ip 127.0.0.1 
                                      --source-port=7777 
-                                     --output-file dump.txt -v -x 
+                                     -v -x 
     
     3. Next please launch the client application like this:
     

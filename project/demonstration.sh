@@ -52,13 +52,17 @@ cd $client_path; make clean; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 ./duplicate_remove.sh; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 
 echo -e "\n#############################To manually run the client and server applications:#############################"
-cd $server_path; 
-echo -e "\nFirst please launch the server application like this:"
-echo -e "$(cat README.txt)"
+
+
+echo -e "\nFirst build the project using:"
+echo -e "${path_to_script}/makeall.sh"
+
+echo -e "\nNext please launch the server application like this:"
+echo -e "${server_path}$(cat README.txt)"
 
 cd $client_path; 
-echo -e "\nNext please launch the client application like this:"
-echo -e "$(cat README.txt)"
+echo -e "\nLastly please launch the client application like this:"
+echo -e "${client_path}$(cat README.txt)"
 
 
 cd $this_path

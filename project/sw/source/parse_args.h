@@ -27,7 +27,6 @@ struct server_arguments
 {
   char *args[2];            /* ARG1 and ARG2 */
   int verbose, debug;              /* The -v flag */
-  char *outfile;            /* Argument for -o */
   char *source_ip, *source_port;
 };
 
@@ -49,7 +48,6 @@ static struct argp_option server_options[] =
   {"debug",          'x',	0              , 0, "Produce verbose output"},
   {"source-ip",      's', "<XX.XX.XX.XX>", 0, "Provide source IP address of you NIC"},
   {"source-port",    'p', "<XXXX>"			 , 0, "Provide source port number > 1025"},
-  {"output-file",    'o', "OUTFILE"			 , 0, "Output to OUTFILE instead of to standard output"},
   {0}
 };
 
@@ -119,9 +117,6 @@ static error_t server_parse_opt (int key, char *arg, struct argp_state *state)
             break;
         case 'p':
             arguments->source_port = arg;
-            break;
-        case 'o':
-            arguments->outfile = arg;
             break;
         case ARGP_KEY_ARG:
           return 0;
