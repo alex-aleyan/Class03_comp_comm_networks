@@ -14,7 +14,7 @@
 #include "../source/headers.h"
 #include "../source/readfile.h"
 #include "../source/packet_id.h"
-
+#include <sys/time.h>
 
 #define MAX_NUM_OF_FILES 10
 #define MAX_CHARS_PER_LINE 8500
@@ -149,6 +149,8 @@ int main (int argc, char **argv)
     struct sockaddr_in rx_from_address; // AF_INET
     int rxSockLen = sizeof(rx_from_address);
 
+    struct timeval timeout={2,0}; //set timeout for 2 seconds
+
     //RX SOCKET:
     struct sockaddr_in rx_local_address; // AF_INET
     memset(&rx_local_address, 0, sizeof(rx_local_address));
@@ -161,6 +163,9 @@ int main (int argc, char **argv)
     int rx_socket_fd = -1; 
     rx_socket_fd = socket(AF_INET,SOCK_DGRAM,0);
     if (rx_socket_fd == -1) bail("Failed to create a socket; see line: rx_socket_fd=socket(AF_INET,SOCKET_DGRAM,0);");
+
+    setsockopt(rx_socket_fd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
+
     test = bind( rx_socket_fd,                          \
                  (struct sockaddr *) &rx_local_address, \
                  sizeof(rx_local_address)               );
@@ -252,6 +257,10 @@ int main (int argc, char **argv)
                          0,                                    \
                          (struct sockaddr *) &rx_from_address, \
                          &rxSockLen                            );
+
+                // time out occured or other error:
+                if (test < 0) { STATE=SEND_INIT; continue; }
+
                 app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
 
                 printf("(*app_layer).fin: %d\n",(*app_layer).fin);
@@ -342,6 +351,9 @@ int main (int argc, char **argv)
                          0,                                    \
                          (struct sockaddr *) &rx_from_address, \
                          &rxSockLen                            );
+                // time out occured or other error:
+                if (test < 0) { STATE=SEND_DATA; continue; }
+    
                 app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
 
                 STATE = SEND_FIN_ACK;
@@ -409,6 +421,8 @@ int main (int argc, char **argv)
                          0,                                    \
                          (struct sockaddr *) &rx_from_address, \
                          &rxSockLen                            );
+                // time out occured or other error:
+                if (test < 0) { STATE=SEND_FIN_ACK; continue; }
                 app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
 
                 printf("(*app_layer).fin: %d\n",(*app_layer).fin);
@@ -424,6 +438,7 @@ int main (int argc, char **argv)
             //default: return -1;
         //}   
 
+/*
         printf("running rcvfrom\n");   
         test = recvfrom( rx_socket_fd,                             \
                          receiveDgramBuffer,                   \
@@ -432,7 +447,7 @@ int main (int argc, char **argv)
                          (struct sockaddr *) &rx_from_address, \
                          &rxSockLen                            );
         app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
-    
+*/  
 
     }
 

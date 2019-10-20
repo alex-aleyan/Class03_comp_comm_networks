@@ -12,6 +12,7 @@
 #include <netinet/in.h> //sockaddr_in
 #include "../source/func.h"
 #include "../source/headers.h"
+#include <sys/time.h>
 
 #define MAX_NUM_OF_FILES 10
 
@@ -99,12 +100,16 @@ int main (int argc, char **argv)
         printf( "rx_local_address.sin_addr.s_addr = 0x%08x\n",   rx_local_address.sin_addr.s_addr);
         printf( "rx_local_address.sin_port        = 0x%04x\n\n", rx_local_address.sin_port);
     }
-    
+ 
+    struct timeval timeout={2,0}; //set timeout for 2 seconds
+   
     //OPEN A SOCKET AND CATCH THE FD:
     int rx_socket_fd = -1;
     rx_socket_fd = socket(AF_INET,SOCK_DGRAM,0);
     if (rx_socket_fd == -1) bail("Failed to create a socket; see line: rx_socket_fd=socket(AF_INET,SOCKET_DGRAM,0);");
-    
+
+    setsockopt(rx_socket_fd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval)); 
+   
     if (arguments.debug != 0) printf("FD returned by socket(): %d\n", rx_socket_fd);
     
     //BIND THE SOCKET TO A GIVEN IP/PORT:
@@ -161,6 +166,10 @@ int main (int argc, char **argv)
                                  0,                                    \
                                  (struct sockaddr *) &rx_from_address, \
                                  &txSockLen                            );
+                //time out occured or other error:
+                if (test < 0) { STATE=RECEIVE_INIT; continue; }
+
+                
                 app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
 
                 printf("(*app_layer).init: %d\n",(*app_layer).init);
@@ -272,6 +281,9 @@ int main (int argc, char **argv)
                                      0,                                    \
                                      (struct sockaddr *) &rx_from_address, \
                                      &txSockLen                            );
+
+                    //time out occured or other error:
+                    if (test < 0) { STATE=SEND_ACK; continue; }
                     
                     // get the header:
                     app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
@@ -452,6 +464,10 @@ int main (int argc, char **argv)
                                  0,                                    \
                                  (struct sockaddr *) &rx_from_address, \
                                  &txSockLen                            );
+
+                //time out occured or other error:
+                if (test < 0) { STATE=SEND_FIN_DATA; continue; }
+
                 app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
 
                     printf("(*app_layer).init: %d\n",(*app_layer).init);

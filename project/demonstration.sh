@@ -57,11 +57,8 @@ echo -e "\n#############################To manually run the client and server ap
 echo -e "\nFirst build the project using:"
 echo -e "${path_to_script}/makeall.sh"
 
-echo -e "\nNext please launch the server application like this:"
+echo -e "\nNext please launch the server and client applications like this (order does not matter but server first is preferred):"
 echo -e "${server_path}$(cat README.txt)"
-
-cd $client_path; 
-echo -e "\nLastly please launch the client application like this:"
 echo -e "${client_path}$(cat README.txt)"
 
 

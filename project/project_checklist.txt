@@ -23,13 +23,12 @@ MANUALLY RUN DEMONSTRATION:
     
         project/makeall.sh
     
-    2. Please launch the server application like this:
+    2. Please launch the server and client application like this (order does not matter but server first is preferred):
     
         project/sw/server/server.run --source-ip 127.0.0.1 
                                      --source-port=7777 
                                      -v -x 
     
-    3. Next please launch the client application like this:
     
         project/sw/client/client.run --source-ip 127.0.0.1
                                      --source-port 7778
