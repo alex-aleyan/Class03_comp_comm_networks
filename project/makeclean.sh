@@ -13,22 +13,13 @@ client_path="${path_to_script}/sw/client"
 data_file0="file0.txt"
 dest_file="file.txt"
 
-cd $server_path
-if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
-rm $dest_file
-make all
-if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 
-cd $this_path
 
-cd $client_path
-if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
-rm $dest_file
-make all
-if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
+cd $server_path; rm -f $dest_file; make clean; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
+cd $client_path; rm -f $dest_file; make clean; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 
-# create 10 files from "data_file0"
-if test -f "$data_file0"; then echo "$data_file0 exist"; fi
+./duplicate_remove.sh; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
+
 
 cd $this_path
 

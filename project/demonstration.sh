@@ -41,23 +41,28 @@ $(cat README.txt) &
 cd $client_path; 
 $(cat README.txt) 
 
+echo -e "\n#############################Client received $dest_file with this content:###############################"
+cat $dest_file
+echo -e   "#############################Content ends @ line above                    ###############################\n\n"
+
 
 cd $server_path; make clean; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 cd $client_path; make clean; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 
 ./duplicate_remove.sh; if [ "$?" -ne 0 ]; then cd $this_path; exit ; fi
 
-echo -e "\nTo manually run the client and server applications:"
+echo -e "\n#############################To manually run the client and server applications:#############################"
 cd $server_path; 
-echo -e "\n\tFirst please launch the server application like this:"
-echo -e "\t$(cat README.txt)"
+echo -e "\nFirst please launch the server application like this:"
+echo -e "$(cat README.txt)"
 
 cd $client_path; 
-echo -e "\n\tNext please launch the client application like this:"
-echo -e "\t$(cat README.txt)"
+echo -e "\nNext please launch the client application like this:"
+echo -e "$(cat README.txt)"
+
 
 cd $this_path
 
-echo -e "\n\nSee:\n\t$server_path/file.txt \
+echo -e "\n\n#############################See the file resulted from the transfer @ $server_path/file.txt \
 \n\t$server_path/README.txt \
 \n\t$client_path/README.txt"

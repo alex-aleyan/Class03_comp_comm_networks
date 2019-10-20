@@ -1,0 +1,40 @@
+
+B.1
+    Server uses udp port 7777 per project requirements.
+    Client uses udp port 7778.
+    As per project requirement, the client specifies the FILENAME, TOTAL NUMBER OF LINES, and LINE NUMBER in the application layer of each packet.
+    As per project requirement, the server using information mentioned above reconstructs the file, stores the file on the server and retransmits the reconstructed file back as a single packet.
+    As per project requirement, the server does not send a FIN to Client until all data is received.
+
+B.2 - Extra credit:
+    The Client and Server programs use calloc() to allocate the exact amount of memory as required by each line of the file instead of using arrays of elements of fixed number of bytes where each element stores a line; using calloc() to dynamically allocate the memory increased the code complexity with the benefit of memory conservation. To code complexity was also increased since each line of the file had to be manually parsed to count the characters per line and to determine the number of lines in each file.
+    Both Client and Server implement GNU's Argp() to parse the arguments which specify such information as ip, port, source file, destination file instead of hard typing this information. This feature added flexibility at the cost on increased code complexity.
+    
+
+B.3
+
+DEMONSTRATION:
+
+  project/demonstration
+
+MANUALLY RUN:
+
+    1. Build the software by running:
+    
+        project/makeall.sh
+    
+    2. Please launch the server application like this:
+    
+        project/sw/server/server.run --source-ip 127.0.0.1 
+                                     --source-port=7777 
+                                     --output-file dump.txt -v -x 
+    
+    3. Next please launch the client application like this:
+    
+        project/sw/client/client.run --source-ip 127.0.0.1
+                                     --source-port 7778
+                                     --dest-ip 127.0.0.1
+                                     --dest-port 7777
+                                     --output-file file.txt
+                                     -v -x
+                                     file0.txt file1.txt file2.txt file3.txt file4.txt file5.txt file6.txt file7.txt file8.txt file9.tx

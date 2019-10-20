@@ -190,6 +190,7 @@ int main (int argc, char **argv)
 
                 (*app_layer).file_id = 0;
                 (*app_layer).current_line = 0;
+                (*app_layer).current_line = atoi(arguments.source_port);
                 (*app_layer).total_lines = MAX_NUM_OF_FILES;
                 (*app_layer).ack = 0;
                 (*app_layer).init = 1;
