@@ -23,9 +23,9 @@
 
 typedef enum {
     SEND_INIT,
-    RECIEVE_ACK,
+    RECEIVE_INIT_ACK,
     SEND_DATA,
-    RECIEVE_DATA,
+    RECEIVE_FIN_DATA,
     SEND_FIN_ACK,
     RECIEVE_FIN_ACK,
     SAVE_DATA,
@@ -182,7 +182,7 @@ int main (int argc, char **argv)
             if (STATE ==  SEND_INIT){
                 printf("SEND_INIT\n");
         
-                STATE=RECIEVE_ACK;
+                STATE=RECEIVE_INIT_ACK;
                 
                 //##################### SEND INIT PACKET BEGIN:##################################
                 // Build init packet:
@@ -241,9 +241,9 @@ int main (int argc, char **argv)
                 //##################### SEND INIT PACKET END:##################################
                 //
             }
-            //case RECIEVE_ACK:
-            if (STATE ==  RECIEVE_ACK){
-                printf("RECIEVE_ACK\n");
+            //case RECEIVE_INIT_ACK:
+            if (STATE ==  RECEIVE_INIT_ACK){
+                printf("RECEIVE_INIT_ACK\n");
 
                 test = recvfrom( rx_socket_fd,                             \
                          receiveDgramBuffer,                   \
@@ -268,7 +268,7 @@ int main (int argc, char **argv)
             //case SEND_DATA:
             if (STATE ==  SEND_DATA){
                 printf("SEND_DATA\n");
-                STATE = RECIEVE_DATA;
+                STATE = RECEIVE_FIN_DATA;
 
                 //##################### SEND DATA BEGIN:##################################
                 //Send data:
@@ -331,9 +331,9 @@ int main (int argc, char **argv)
 
                 //break;
             }
-            //case RECIEVE_DATA: 
-            if (STATE ==  RECIEVE_DATA){
-                printf("RECEIVE_DATA\n");
+            //case RECEIVE_FIN_DATA: 
+            if (STATE ==  RECEIVE_FIN_DATA){
+                printf("RECEIVE_FIN_DATA\n");
 
                 test = recvfrom( rx_socket_fd,                             \
                          receiveDgramBuffer,                   \
@@ -400,17 +400,23 @@ int main (int argc, char **argv)
             }
             //case RECIEVE_FIN_ACK:
             if (STATE ==  RECIEVE_FIN_ACK){
-                printf("RECIEVE_FIN_ACK\n");
+                printf("RECEIVE_FIN_ACK\n");
+
+                test = recvfrom( rx_socket_fd,                             \
+                         receiveDgramBuffer,                   \
+                         sizeof(receiveDgramBuffer),           \
+                         0,                                    \
+                         (struct sockaddr *) &rx_from_address, \
+                         &rxSockLen                            );
+                app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
+
                 printf("(*app_layer).fin: %d\n",(*app_layer).fin);
                 printf("(*app_layer).init: %d\n",(*app_layer).init);
                 printf("(*app_layer).ack: %d\n",(*app_layer).ack);
 
-                if ( (*app_layer).fin == 1 && (*app_layer).ack == 1) return 0;
-
+                if ( (*app_layer).fin == 1 && (*app_layer).ack == 1) {printf("DONE\n");return 0;}
                 STATE = SEND_FIN_ACK;
                 
-                printf("RECEIVE_FIN_ACK: (*app_layer).init: %d\n",(*app_layer).init);
-                printf("RECEIVE_FIN_ACK: (*app_layer).ack: %d\n",(*app_layer).ack);
                 //continue;
             }
 

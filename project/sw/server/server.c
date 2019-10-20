@@ -473,7 +473,9 @@ int main (int argc, char **argv)
                                 0,                                     \
                                 (struct sockaddr *) &rx_from_address,  \
                                 sizeof(rx_from_address)               );
-                if ( test < 1) printf("Failed to send line.\n");  return -1;
+                if ( test < 1) {printf("Failed to send line.\n");  return -1;}
+                printf("DONE\n");
+
                 return 0;
             }
 
