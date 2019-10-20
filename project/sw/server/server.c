@@ -292,20 +292,26 @@ int main (int argc, char **argv)
 
                     //time out occured or other error:
                     if (test < 0) { STATE=SEND_INIT_ACK; continue; }
-                    
+
                     // get the header:
                     app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
 
+                    printf("(*app_layer).init: %d\n",(*app_layer).init);
+                    printf("(*app_layer).ack: %d\n",(*app_layer).ack);
+                    printf("(*app_layer).fin: %d\n",(*app_layer).fin);
+                    printf("(*app_layer).file_id: %d\n",(*app_layer).file_id);
+                    printf("(*app_layer).file_number: %d\n",(*app_layer).file_number);
+                    printf("(*app_layer).current_line: %d\n",(*app_layer).current_line);
+                    printf("(*app_layer).total_lines: %d\n\n",(*app_layer).total_lines);
 
+                    if ( (*app_layer).fin == 1 && (*app_layer).ack == 1 ) {STATE=SEND_FIN_ACK; continue;}
             
                     // make sure the packet is not an init or a fin packet; if init, resend an ACK:
                     if ( (*app_layer).init == 1 ){
                         STATE = SEND_INIT_ACK;
                          printf("Respond with ACK!!!\n"); 
 
-                         printf("(*app_layer).init: %d\n",(*app_layer).init);
-                         printf("(*app_layer).ack: %d\n",(*app_layer).ack);
-                         printf("(*app_layer).fin: %d\n",(*app_layer).fin);
+
             
                         (*app_layer).ack = 1;
                     

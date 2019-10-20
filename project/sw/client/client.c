@@ -363,6 +363,7 @@ int main (int argc, char **argv)
     
                 app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
 
+                if ( (*app_layer).fin == 1 && (*app_layer).ack == 1 ) return 0;
                 STATE = SEND_FIN_ACK;
                 if ( (*app_layer).fin == 0 ) STATE = SEND_DATA;
     
