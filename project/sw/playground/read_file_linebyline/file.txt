@@ -1,4 +1,0 @@
-word00 word01 word02
-word10
-word20 word21
-word30
