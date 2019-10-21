@@ -58,8 +58,8 @@ echo -e "\nFirst build the project using:"
 echo -e "${path_to_script}/makeall.sh"
 
 echo -e "\nNext please launch the server and client applications like this (order does not matter but server first is preferred):"
-echo -e "${server_path}$(cat README.txt)"
-echo -e "${client_path}$(cat README.txt)"
+echo -e "$(cat ${client_path}/README.txt)"
+echo -e "$(cat ${server_path}/README.txt)"
 
 
 cd $this_path
