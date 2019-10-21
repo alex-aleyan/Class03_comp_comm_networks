@@ -190,7 +190,7 @@ int main (int argc, char **argv)
                 //################ RECEIVE INIT PACKET ###################
                 //Allocate the memory to store: the application header + the data following the application header + 1 byte for NULL:
                 app_layer = (file_x_app_layer_t *) malloc(test + 1);
-                if (app_layer == NULL) {printf("Error: malloc failed see line 120!\n"); exit(EXIT_FAILURE);}
+                if (app_layer == NULL) {perror("server(): failed to allocate memory"); exit(EXIT_FAILURE);}
 
                 //Copy the header and the data to the allocated memory:
                 memcpy(app_layer, receiveDgramBuffer, test);
@@ -205,6 +205,7 @@ int main (int argc, char **argv)
 
                 //file_info_t file[10];
                 file = (file_info_t *) calloc( (*app_layer).total_lines , sizeof(file_info_t) ); // FIXME: create a union of two strucs for app_layer and rename the total_liens to total_files
+                if (file == NULL) {perror("server(): failed to allocate memory"); exit(EXIT_FAILURE);}
                 total_files =(*app_layer).total_lines;
                 client_port =(*app_layer).current_line;
 
@@ -243,6 +244,7 @@ int main (int argc, char **argv)
 
                 //################ REPLY TO INIT BEGIN ###################
                 app_layer = (file_x_app_layer_t *) calloc(1,test + 1);
+                if (app_layer == NULL) {perror("server(): failed to allocate memory"); exit(EXIT_FAILURE);}
                 (*app_layer).ack = 1;
                 (*app_layer).init = 1;
                 
@@ -337,7 +339,9 @@ int main (int argc, char **argv)
                     //Allocate the memory to store: the application header + the data following the application header + 2 bytes for \n and NULL:
                     //app_layer = (file_x_app_layer_t *) malloc(test + 1);
                     app_layer = (file_x_app_layer_t *) malloc(sizeof(file_x_app_layer_t));
+                    if (app_layer == NULL) {perror("server(): failed to allocate memory"); exit(EXIT_FAILURE);}
                     file_data = malloc(test - sizeof(file_x_app_layer_t) + 2);
+                    if (file_data == NULL) {perror("server(): failed to allocate memory"); exit(EXIT_FAILURE);}
                     //append new line character that was stripped right before the string was transmitted by the sender:
                     *(file_data + test - sizeof(file_x_app_layer_t)) = '\n';
                     //terminate the string with NULL:
@@ -349,6 +353,7 @@ int main (int argc, char **argv)
                     //Check if a packet corresponding to this file was already received:
                     if (file[(*app_layer).file_number].received_line_record == NULL){
                         file[(*app_layer).file_number].received_line_record = (char *) calloc( (*app_layer).total_lines, sizeof(char));
+                        if (file[(*app_layer).file_number].received_line_record == NULL) {perror("server(): failed to allocate memory"); exit(EXIT_FAILURE);}
                         file[(*app_layer).file_number].number_of_lines_in_file = (*app_layer).total_lines;
                     }
             
@@ -422,6 +427,7 @@ int main (int argc, char **argv)
                 //########FIXME: send FIN with the content of destination_file_name!
             
                 app_layer = malloc( sizeof(file_x_app_layer_t) );
+                if (app_layer == NULL) {perror("server(): failed to allocate memory"); exit(EXIT_FAILURE);}
                 //(*app_layer).file_id = file[current_file].file_id ;
                 (*app_layer).file_number = 0;
                 (*app_layer).current_line = 0;
@@ -503,7 +509,7 @@ int main (int argc, char **argv)
                 //printf("(*app_layer).fin: %d\n",(*app_layer).fin);
                 
                 app_layer = (file_x_app_layer_t *) malloc(sizeof(file_x_app_layer_t));
-                if (app_layer == NULL) { return -1;}
+                if (app_layer == NULL) {perror("server(): failed to allocate memory"); exit(EXIT_FAILURE);}
                 (*app_layer).fin = 1;
                 (*app_layer).ack = 1;
                 rx_from_address.sin_port        = htons(client_port);

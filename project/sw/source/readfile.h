@@ -56,6 +56,7 @@ char ** getData(FILE *fd, int * number_of_lines, int debug, char * line_ptr2[])
 						}
   
             line_ptr[current_line] = malloc(char_count*sizeof(char)+1);
+            if (line_ptr[current_line] == NULL) {perror("getData(): failed to allocate memory"); exit(EXIT_FAILURE);}
 						line_ptr2[current_line] = line_ptr[current_line];
 						if (debug != 0) printf("Line=%d stored at 0x%x\n\n", current_line, line_ptr[current_line]);
             if (line_ptr[current_line] == NULL) {printf("Caught NULL at malloc!!!"); return -1;};
@@ -114,6 +115,7 @@ int getFileInfo( file_info_t *file, char * file_name, uint8_t current_file, int 
     
     (*file).number_of_lines_in_file = getLinesPerFile(fd);
     if (!(*file).number_of_lines_in_file) {printf("Error:%s file is empty!\n", file_name); exit(EXIT_FAILURE);}
+    if (!(*file).number_of_lines_in_file > MAX_NUM_OF_LINES) {printf("Error:%s has too many line; modify MAX_NUM_OF_LINES and recompile!\n", file_name); exit(EXIT_FAILURE);}
     getData(fd, &NUM_OF_LINES, 1, (*file).text_line);
     (*file).number_of_lines_in_file = NUM_OF_LINES;
     

@@ -187,6 +187,7 @@ int main (int argc, char **argv)
     int current_char;
     file_x_app_layer_t * app_layer;
     app_layer = calloc(1, sizeof(file_x_app_layer_t) );
+    if (app_layer == NULL) {perror("client(): failed to allocate memory"); exit(EXIT_FAILURE);}
 
     while(1) {
         //switch(STATE) {
@@ -199,6 +200,7 @@ int main (int argc, char **argv)
                 //##################### SEND INIT PACKET BEGIN:##################################
                 // Build init packet:
                 app_layer = calloc(1, sizeof(file_x_app_layer_t) );
+                if (app_layer == NULL) {perror("client(): failed to allocate memory"); exit(EXIT_FAILURE);}
 
                 (*app_layer).file_id = 0;
                 (*app_layer).current_line = 0;
@@ -222,6 +224,7 @@ int main (int argc, char **argv)
             
                 //Allocate the memory to store the MAX_NUM_OF_FILES file ids with the destination file's name appended at the end:
                 char * init_packet_payload = calloc(1, (MAX_NUM_OF_FILES*2) + strlen(arguments.outfile));
+                if (init_packet_payload == NULL) {perror("client(): failed to allocate memory"); exit(EXIT_FAILURE);}
             
                 //put all file_ids at the head of the allocated memory:
                 for (current_file=0; current_file<MAX_NUM_OF_FILES; current_file++)
@@ -232,6 +235,7 @@ int main (int argc, char **argv)
                 
                 //Concatinate the Application Header with the Payload:
                 char * init_payload = concat_bytes_alloc(app_layer, sizeof(file_x_app_layer_t), init_packet_payload, (MAX_NUM_OF_FILES*2)+strlen(arguments.outfile) );
+                if (init_payload == NULL) {perror("client(): failed to allocate memory"); exit(EXIT_FAILURE);}
             
                 free(init_packet_payload);
                 free(app_layer);
@@ -297,6 +301,7 @@ int main (int argc, char **argv)
 
             
                 app_layer = calloc(1, sizeof(file_x_app_layer_t) );
+                if (app_layer == NULL) {perror("client(): failed to allocate memory"); exit(EXIT_FAILURE);}
                 (*app_layer).init = 0;
                 (*app_layer).ack = 0;
                 (*app_layer).fin = 0;
@@ -404,6 +409,7 @@ int main (int argc, char **argv)
                 STATE = RECIEVE_FIN_ACK;
 
                 app_layer = calloc(1, sizeof(file_x_app_layer_t) );
+                if (app_layer == NULL) {perror("client(): failed to allocate memory"); exit(EXIT_FAILURE);}
 
                 (*app_layer).file_id = 0;
                 (*app_layer).current_line = 0;
@@ -452,16 +458,6 @@ int main (int argc, char **argv)
             //default: return -1;
         //}   
 
-/*
-        printf("running rcvfrom\n");   
-        test = recvfrom( rx_socket_fd,                             \
-                         receiveDgramBuffer,                   \
-                         sizeof(receiveDgramBuffer),           \
-                         0,                                    \
-                         (struct sockaddr *) &rx_from_address, \
-                         &rxSockLen                            );
-        app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
-*/  
 
     }
 
