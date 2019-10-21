@@ -304,7 +304,7 @@ int main (int argc, char **argv)
                     printf("(*app_layer).current_line: %d\n",(*app_layer).current_line);
                     printf("(*app_layer).total_lines: %d\n\n",(*app_layer).total_lines);
 
-                    if ( (*app_layer).fin == 1 && (*app_layer).ack == 1 ) {STATE=SEND_FIN_ACK; continue;}
+                    if ( (*app_layer).fin == 1 || (*app_layer).ack == 1 ) {STATE=SEND_FIN_ACK; break;}
             
                     // make sure the packet is not an init or a fin packet; if init, resend an ACK:
                     if ( (*app_layer).init == 1 ){

@@ -274,6 +274,8 @@ int main (int argc, char **argv)
                 printf("(*app_layer).init: %d\n",(*app_layer).init);
                 printf("(*app_layer).ack: %d\n",(*app_layer).ack);
                 STATE = SEND_DATA;
+                //TEST: force server abort: 
+                //STATE = SEND_FIN_ACK;
 
                 if ( (*app_layer).ack != 1 || (*app_layer).init != 1 ) { 
                     STATE = SEND_INIT; 
