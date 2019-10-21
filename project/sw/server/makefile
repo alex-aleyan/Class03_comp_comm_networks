@@ -1,7 +1,8 @@
 #use this compiler:
 CC=gcc
 CC_OPTIONS=-v -Wall -W -D_GNU_SOURCE -DMAX_NUM_OF_FILES=10 -DMAX_NUM_OF_LINES=1024 -DRECEIVE_BUFFER_SIZE=9000
-CC_DEBUG_OPTIONS=-v -g --save-temps -Wall -W -D_GNU_SOURCE -W -DGETPROTOBYNUMBER
+TEST_OPTIONS=-DTEST_CLIENT_ABORT
+CC_DEBUG_OPTIONS=-v -g --save-temps -W -DGETPROTOBYNUMBER $(CC_OPTIONS)
 PROG_NAME=server
 TARGET=$(PROG_NAME).run
 SRC=$(PROG_NAME).c
@@ -21,7 +22,9 @@ debug:
 
 non_debug:
 	$(CC) $(CC_OPTIONS) $(SRC) -o $(TARGET)
-  
+
+test_abort:
+	$(CC) $(CC_OPTIONS) $(SRC) $(TEST_OPTIONS) -o $(TARGET)
 
 clean : 
 #rm -f $(SERVER_TARGET) $(CLIENT_TARGET)

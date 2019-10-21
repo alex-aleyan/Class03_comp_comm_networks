@@ -272,6 +272,10 @@ int main (int argc, char **argv)
 
                 STATE = SEND_FIN_DATA;
 
+                #ifdef TEST_CLIENT_ABORT
+                    STATE = SEND_FIN_ACK;
+                #endif
+
                 //################ RECEIVE PACKETS OR REPLY TOi INIT WITH ACK BEGIN ###################
                 all_done = 0;
                 current_line=0;
@@ -497,6 +501,11 @@ int main (int argc, char **argv)
 
                 //printf("(*app_layer).ack: %d\n",(*app_layer).ack);
                 //printf("(*app_layer).fin: %d\n",(*app_layer).fin);
+                
+                app_layer = (file_x_app_layer_t *) malloc(sizeof(file_x_app_layer_t));
+                if (app_layer == NULL) { return -1;}
+                (*app_layer).fin = 1;
+                (*app_layer).ack = 1;
                 rx_from_address.sin_port        = htons(client_port);
                 test=sendto(tx_socket_fd,                          \
                                 app_layer,                             \

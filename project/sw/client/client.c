@@ -274,8 +274,10 @@ int main (int argc, char **argv)
                 printf("(*app_layer).init: %d\n",(*app_layer).init);
                 printf("(*app_layer).ack: %d\n",(*app_layer).ack);
                 STATE = SEND_DATA;
-                //TEST: force server abort: 
-                //STATE = SEND_FIN_ACK;
+
+                #ifdef TEST_SERVER_ABORT
+                    STATE = SEND_FIN_ACK;
+                #endif
 
                 if ( (*app_layer).ack != 1 || (*app_layer).init != 1 ) { 
                     STATE = SEND_INIT; 
@@ -364,14 +366,16 @@ int main (int argc, char **argv)
                 if (test < 0) { STATE=SEND_DATA; continue; }
     
                 app_layer = (file_x_app_layer_t *) receiveDgramBuffer;
-
-                if ( (*app_layer).fin == 1 && (*app_layer).ack == 1 ) return 0;
-                STATE = SEND_FIN_ACK;
-                if ( (*app_layer).fin == 0 ) STATE = SEND_DATA;
-    
                 printf("(*app_layer).fin: %d\n",(*app_layer).fin);
                 printf("(*app_layer).init: %d\n",(*app_layer).init);
                 printf("(*app_layer).ack: %d\n",(*app_layer).ack);
+
+                if ( (*app_layer).fin == 1 && (*app_layer).ack == 1 ) return -1;
+
+                STATE = SEND_FIN_ACK;
+                if ( (*app_layer).fin == 0 ) STATE = SEND_DATA;
+    
+
             
                 
                 //##################### RECEIVE FIN PACKET END:##################################
