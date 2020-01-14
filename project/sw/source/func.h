@@ -223,7 +223,9 @@ int printHostByName(char *hostName){
 char * concat_bytes_alloc (char * app_header, int app_header_size, char * data, int data_size)
 {
     char * dest_file_name_ptr = malloc(app_header_size + data_size);
-    if (dest_file_name_ptr == NULL) {perror("concat_bytes_alloc(): failed to allocate memory"); exit(EXIT_FAILURE);}
+    if (dest_file_name_ptr == NULL) {
+        perror("concat_bytes_alloc(): failed to allocate memory"); 
+        exit(EXIT_FAILURE);}
     memcpy(dest_file_name_ptr, app_header , app_header_size );
     memcpy(dest_file_name_ptr+app_header_size, data, data_size );
     return dest_file_name_ptr;
@@ -241,7 +243,9 @@ int concat_bytes_append (char * current_memory, int current_memory_size, char * 
     //if (current_memory == NULL){
     if (current_memory_size == 0){
         current_memory = malloc(append_data_size);
-        if (current_memory == NULL) {perror("concat_bytes_alloc(): failed to allocate memory"); exit(EXIT_FAILURE);}
+        if (current_memory == NULL) {
+            perror("concat_bytes_alloc(): failed to allocate memory"); 
+            exit(EXIT_FAILURE);}
         //if (current_memory == NULL) {current_memory = current_memory_old; return current_memory_size;}
         memcpy(current_memory, append_data , append_data_size );
         return (current_memory_size+append_data_size);
@@ -249,7 +253,9 @@ int concat_bytes_append (char * current_memory, int current_memory_size, char * 
 
         
     current_memory = realloc(current_memory, current_memory_size + append_data_size);
-    if (current_memory == NULL) {perror("concat_bytes_alloc(): failed to allocate memory"); exit(EXIT_FAILURE);}
+    if (current_memory == NULL) {
+        perror("concat_bytes_alloc(): failed to allocate memory"); 
+        exit(EXIT_FAILURE);}
     //if (current_memory == NULL) {current_memory = current_memory_old; return 0;}
     memcpy( current_memory+current_memory_size, append_data , append_data_size );
 
